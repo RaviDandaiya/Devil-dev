@@ -53,8 +53,10 @@ body {
     padding: 15px 40px;
     font-size: 24px;
     cursor: pointer;
-    background: #ff4500;
-    border: none;
+    background: #4B0082;
+    /* Dark Purple */
+    border: 2px solid #9370DB;
+    /* Lighter Purple Border */
     color: white;
     border-radius: 8px;
     transition: transform 0.2s;

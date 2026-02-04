@@ -11,6 +11,7 @@ canvas.height = 600;
 
 const GRAVITY = 0.8;
 let currentLevelIndex = 0;
+let gameStarted = false;
 
 // --- Three.js Setup for 3D Character ---
 const threeScene = new THREE.Scene();
@@ -331,7 +332,13 @@ function loadLevel(index) {
     const overlay = document.getElementById('start-overlay');
     overlay.innerHTML = `<h1>${currentLevel.name}</h1><p>Level ${index + 1}</p><button id="start-btn">START LEVEL</button>`;
     overlay.classList.remove('hidden');
-    document.getElementById('start-btn').onclick = () => overlay.classList.add('hidden');
+    document.getElementById('start-btn').onclick = () => {
+        overlay.classList.add('hidden');
+        if (!gameStarted) {
+            gameStarted = true;
+            gameLoop();
+        }
+    };
 }
 
 function resetCurrentLevel() {
@@ -387,7 +394,5 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-document.getElementById('start-btn').addEventListener('click', () => {
-    document.getElementById('start-overlay').classList.add('hidden');
-    gameLoop();
-});
+// Initial Load
+loadLevel(0);
