@@ -144,6 +144,8 @@ class Player {
         this.lives = 3;
         this.won = false;
         this.facingRight = true;
+        this.rotation = 0;
+        this.jumpCooldown = 0;
     }
 
     resetPosition() {
