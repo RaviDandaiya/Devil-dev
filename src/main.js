@@ -1,3 +1,4 @@
+import './style.css';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
@@ -103,6 +104,7 @@ class Player {
     }
 
     loadModel() {
+        console.log("Loading model from ./assets/models/");
         const mtlLoader = new MTLLoader();
         mtlLoader.setPath('./assets/models/');
         mtlLoader.load('plumber.mtl', (materials) => {
@@ -115,7 +117,11 @@ class Player {
                 threeScene.add(this.model);
                 this.modelReady = true;
                 console.log("3D Plumber Loaded!");
+            }, undefined, (err) => {
+                console.error("OBJ Loading failed:", err);
             });
+        }, undefined, (err) => {
+            console.error("MTL Loading failed:", err);
         });
     }
 
