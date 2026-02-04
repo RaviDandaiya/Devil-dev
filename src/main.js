@@ -419,51 +419,56 @@ class Player {
 // --- Level Data & Management ---
 const levels = [
     {
-        name: "Devil Dev - Level 1",
+        name: "Level 1: Escape",
         platforms: [
-            new Entity(0, 560, 800, 40, '#8B4513'), // Start ground
-            new Entity(1000, 560, 2000, 40, '#8B4513'), // End ground
-            new Entity(400, 450, 120, 40, '#8B4513'), // Safe jump
-            Object.assign(new Entity(650, 450, 100, 40, '#8B4513'), { triggerOnStep: true }), // Troll: Falls on step
+            new Entity(0, 560, 600, 40, '#8B4513'), // Start ground
+            new Entity(700, 480, 150, 20, '#8B4513'), // Small jump
+            new Entity(950, 420, 150, 20, '#8B4513'), // Next platform
+            new Entity(1200, 560, 1200, 40, '#8B4513'), // Final stretch
         ],
-        goal: { x: 2800, y: 460, width: 40, height: 100, initialX: 2800 },
-        coins: [new Coin(450, 410)],
-        enemies: [new Enemy(1200, 530)],
-        spikes: [],
+        goal: { x: 2200, y: 460, width: 60, height: 100, initialX: 2200 },
+        coins: [new Coin(750, 440), new Coin(1000, 380)],
+        enemies: [new Enemy(1400, 530)],
+        spikes: [new Spikes(1100, 540, 80)],
+        triggers: []
+    },
+    {
+        name: "Level 2: Dark Passage",
+        platforms: [
+            new Entity(0, 560, 400, 40, '#8B4513'),
+            new Entity(500, 490, 120, 20, '#8B4513'),
+            new Entity(700, 420, 120, 20, '#8B4513'),
+            new Entity(900, 360, 120, 20, '#8B4513'),
+            new Entity(1100, 560, 1400, 40, '#8B4513'),
+        ],
+        goal: { x: 2300, y: 460, width: 60, height: 100, initialX: 2300 },
+        coins: [new Coin(550, 450), new Coin(750, 380), new Coin(950, 320)],
+        enemies: [new Enemy(1300, 530), new Enemy(1800, 530)],
+        spikes: [new Spikes(1500, 540, 100)],
         triggers: [
             {
-                triggerX: 2600, activated: false, action: () => {
-                    // Troll: Goal moves away!
-                    const g = levels[currentLevelIndex].goal;
-                    g.x += 400;
-                    console.log("Goal moved! Troll!");
+                triggerX: 1400, activated: false, action: () => {
+                    levels[1].spikes[0].hidden = false;
+                    sounds.playMalice();
                 }
             }
         ]
     },
     {
-        name: "Level 2: Hidden Dangers",
+        name: "Level 3: The Gauntlet",
         platforms: [
-            new Entity(0, 560, 3000, 40, '#8B4513'),
-            new Entity(400, 450, 120, 40, '#8B4513'),
-            new Entity(700, 350, 120, 40, '#8B4513'),
+            new Entity(0, 560, 350, 40, '#8B4513'),
+            new Entity(450, 480, 100, 20, '#8B4513'),
+            new Entity(650, 400, 100, 20, '#8B4513'),
+            new Entity(850, 480, 100, 20, '#8B4513'),
+            new Entity(1050, 400, 100, 20, '#8B4513'),
+            new Entity(1250, 560, 1500, 40, '#8B4513'),
         ],
-        goal: { x: 2800, y: 460, width: 40, height: 100, initialX: 2800 },
-        coins: [new Coin(450, 410), new Coin(750, 310)],
-        enemies: [],
-        spikes: [new Spikes(1000, 540, 100), new Spikes(1500, 540, 100)],
-        triggers: [
-            {
-                triggerX: 900, activated: false, action: () => {
-                    levels[1].spikes[0].hidden = false;
-                }
-            },
-            {
-                triggerX: 1400, activated: false, action: () => {
-                    levels[1].spikes[1].hidden = false;
-                }
-            }
-        ]
+        goal: { x: 2500, y: 460, width: 60, height: 100, initialX: 2500 },
+        coins: [new Coin(500, 440), new Coin(700, 360), new Coin(1100, 360)],
+        enemies: [new Enemy(1400, 530), new Enemy(1700, 530), new Enemy(2000, 530)],
+        spikes: [new Spikes(1600, 540, 80), new Spikes(1900, 540, 80)],
+        triggers: []
     }
 ];
 
