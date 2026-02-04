@@ -89,7 +89,7 @@ class Player {
         this.velocityX = 0;
         this.velocityY = 0;
         this.speed = 5;
-        this.jumpForce = -15;
+        this.jumpForce = -18;
         this.onGround = false;
         this.coins = 0;
         this.lives = 3;
