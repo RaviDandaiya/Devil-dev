@@ -37,6 +37,96 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// --- Sound System ---
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let soundEnabled = true;
+
+const sounds = {
+    playJump() {
+        if (!soundEnabled) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = 400;
+        osc.type = 'square';
+        gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.1);
+    },
+
+    playDeath() {
+        if (!soundEnabled) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.setValueAtTime(300, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.5);
+        osc.type = 'sawtooth';
+        gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.5);
+    },
+
+    playCoin() {
+        if (!soundEnabled) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.setValueAtTime(800, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.15);
+    },
+
+    playWin() {
+        if (!soundEnabled) return;
+        [0, 0.15, 0.3].forEach((delay, i) => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.frequency.value = [523, 659, 784][i];
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.1, audioContext.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + delay + 0.2);
+            osc.start(audioContext.currentTime + delay);
+            osc.stop(audioContext.currentTime + delay + 0.2);
+        });
+    },
+
+    playMalice() {
+        if (!soundEnabled) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.setValueAtTime(150, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
+        osc.type = 'triangle';
+        gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.3);
+    }
+};
+
+// Mute button
+const muteBtn = document.getElementById('mute-btn');
+if (muteBtn) {
+    muteBtn.onclick = () => {
+        soundEnabled = !soundEnabled;
+        muteBtn.textContent = soundEnabled ? '🔊 SOUND ON' : '🔇 SOUND OFF';
+    };
+}
+
 class Camera {
     constructor() { this.x = 0; this.width = canvas.width; }
     follow(player) {
@@ -188,10 +278,12 @@ class Player {
             const gridX = Math.floor(this.x / 100) * 100;
             maliceState.jumpsAtX[gridX] = (maliceState.jumpsAtX[gridX] || 0) + 1;
             this.jumpCooldown = 30; // 30 frames
+            sounds.playJump(); // Play jump sound
 
             // If you jump at the same spot too often, it becomes a trap
             if (maliceState.jumpsAtX[gridX] > 5 && Math.random() > 0.5) {
                 this.velocityY = 10; // Forced fall!
+                sounds.playMalice(); // Play malice sound
                 console.log("Malice: Jumping habit punished.");
             }
         }
@@ -204,6 +296,7 @@ class Player {
                 const nearbyDeath = maliceState.deaths.find(d => d.level === currentLevelIndex && Math.abs(d.x - t.triggerX) < 200);
                 if (nearbyDeath || this.x > t.triggerX) {
                     t.activated = true;
+                    sounds.playMalice(); // Play malice sound when trap activates
                     t.action();
                 }
             }
@@ -244,7 +337,14 @@ class Player {
         });
 
         // Collectibles
-        coins.forEach(c => { if (c.active && this.collidesWith(c)) { c.active = false; this.coins++; document.getElementById('score').innerText = `Coins: ${this.coins}`; } });
+        coins.forEach(c => {
+            if (c.active && this.collidesWith(c)) {
+                c.active = false;
+                this.coins++;
+                sounds.playCoin(); // Play coin sound
+                document.getElementById('score').innerText = `Coins: ${this.coins}`;
+            }
+        });
 
         // Hazard Collisions
         [...enemies, ...spikes].forEach(h => {
@@ -260,6 +360,7 @@ class Player {
                     this.height = 50;
                     h.active = false;
                 } else {
+                    sounds.playDeath(); // Play death sound
                     this.respawn();
                 }
             }
@@ -274,6 +375,7 @@ class Player {
 
         if (this.collidesWith(goal)) {
             this.won = true;
+            sounds.playWin(); // Play win sound
             setTimeout(() => nextLevel(), 500);
         }
 
@@ -293,12 +395,8 @@ class Player {
         resetCurrentLevel();
 
         if (this.lives <= 0) {
-            alert("THE GAME REMEMBERS YOUR FAILURES. RESTARTING...");
-            currentLevelIndex = 0;
-            this.lives = 3;
-            maliceState.uiDecay = 0;
-            document.getElementById('lives').innerText = `${this.lives} HEARTS`;
-            loadLevel(currentLevelIndex);
+            sounds.playDeath(); // Play death sound
+            showGameOver();
         }
     }
 
@@ -421,6 +519,44 @@ function nextLevel() {
         currentLevelIndex = 0;
     }
     loadLevel(currentLevelIndex);
+}
+
+// Game Over Dialog
+function showGameOver() {
+    const gameoverOverlay = document.getElementById('gameover-overlay');
+    const gameoverMessage = document.getElementById('gameover-message');
+
+    gameoverMessage.textContent = `THE GAME REMEMBERS YOUR ${maliceState.deaths.length} FAILURES`;
+    gameoverOverlay.classList.remove('hidden');
+
+    // Pause game
+    gameStarted = false;
+}
+
+function restartGame() {
+    const gameoverOverlay = document.getElementById('gameover-overlay');
+    gameoverOverlay.classList.add('hidden');
+
+    // Reset everything
+    currentLevelIndex = 0;
+    player.lives = 3;
+    player.coins = 0;
+    maliceState.uiDecay = 0;
+    maliceState.deaths = [];
+
+    // Update UI
+    document.getElementById('lives').innerText = `${player.lives} HEARTS`;
+    document.getElementById('score').innerText = player.coins;
+
+    // Reload level and start game
+    loadLevel(0);
+    gameStarted = true;
+}
+
+// Restart button
+const restartBtn = document.getElementById('restart-btn');
+if (restartBtn) {
+    restartBtn.onclick = () => restartGame();
 }
 
 const keys = {};
