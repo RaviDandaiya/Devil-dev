@@ -13,6 +13,16 @@ const GRAVITY = 0.8;
 let currentLevelIndex = 0;
 let gameStarted = false;
 
+// --- Malice Engine ---
+const maliceState = {
+    deaths: [], // {x, y, level}
+    jumpsAtX: {}, // Count jumps at specific X ranges
+    stillTime: 0,
+    repetitionCount: 0,
+    startTime: Date.now(),
+    uiDecay: 0 // 0 to 1
+};
+
 // --- Three.js Setup for 3D Character ---
 const threeScene = new THREE.Scene();
 const threeCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -137,6 +147,7 @@ class Player {
         // Load 3D Model
         this.modelReady = false;
         this.loadModel();
+        this.jumpCooldown = 0;
     }
 
     resetPosition() {
@@ -165,16 +176,52 @@ class Player {
     update(platforms, coins, enemies, blocks, goal, spikes, triggers) {
         if (this.won) return;
 
+        // Malice: Track Stillness
+        if (Math.abs(this.velocityX) < 0.1 && this.onGround && !this.won) {
+            maliceState.stillTime++;
+            if (maliceState.stillTime > 180) { // 3 seconds
+                if (maliceState.stillTime % 30 === 0) {
+                    canvas.style.transform = `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px)`;
+                }
+                if (maliceState.stillTime > 300) { // 5 seconds
+                    this.velocityY = 15; // Ground "eats" you
+                    maliceState.stillTime = 0;
+                    console.log("%cMalice: Don't just stand there.", "color: red; font-weight: bold;");
+                }
+            }
+        } else {
+            maliceState.stillTime = 0;
+            canvas.style.transform = "";
+        }
+
         // Apply Gravity
         this.velocityY += GRAVITY;
         this.y += this.velocityY;
         this.onGround = false;
 
+        // Malice: Track Jumping Habits
+        if (keys['Space'] && this.onGround && this.jumpCooldown <= 0) {
+            const gridX = Math.floor(this.x / 100) * 100;
+            maliceState.jumpsAtX[gridX] = (maliceState.jumpsAtX[gridX] || 0) + 1;
+            this.jumpCooldown = 30; // 30 frames
+
+            // If you jump at the same spot too often, it becomes a trap
+            if (maliceState.jumpsAtX[gridX] > 5 && Math.random() > 0.5) {
+                this.velocityY = 10; // Forced fall!
+                console.log("Malice: Jumping habit punished.");
+            }
+        }
+        if (this.jumpCooldown > 0) this.jumpCooldown--;
+
         // Check Trigger Activations
         triggers.forEach(t => {
             if (!t.activated && this.x > t.triggerX) {
-                t.activated = true;
-                t.action();
+                // Adaptive Malice: Traps might trigger earlier if you've died nearby
+                const nearbyDeath = maliceState.deaths.find(d => d.level === currentLevelIndex && Math.abs(d.x - t.triggerX) < 200);
+                if (nearbyDeath || this.x > t.triggerX) {
+                    t.activated = true;
+                    t.action();
+                }
             }
         });
 
@@ -219,6 +266,8 @@ class Player {
         [...enemies, ...spikes].forEach(h => {
             if (h.active && this.collidesWith(h)) {
                 if (h instanceof Spikes && h.hidden) return;
+
+                // Adaptive Malice: Some enemies become faster if you've killed them many times
                 if (h instanceof Enemy && this.velocityY > 0 && this.y + this.height < h.y + h.height / 2) {
                     h.active = false;
                     this.velocityY = this.jumpForce / 2;
@@ -229,6 +278,13 @@ class Player {
                 } else {
                     this.respawn();
                 }
+            }
+        });
+
+        // Malice: Ghost Spikes (Previous Death Locations)
+        maliceState.deaths.forEach(d => {
+            if (d.level === currentLevelIndex && this.collidesWith({ x: d.x, y: d.y, width: 30, height: 30 })) {
+                this.respawn();
             }
         });
 
@@ -243,15 +299,21 @@ class Player {
     collidesWith(rect) { return this.x < rect.x + rect.width && this.x + this.width > rect.x && this.y < rect.y + rect.height && this.y + this.height > rect.y; }
 
     respawn() {
+        // Record Death for Malice
+        maliceState.deaths.push({ x: this.x, y: this.y, level: currentLevelIndex });
+        maliceState.uiDecay = Math.min(1, maliceState.uiDecay + 0.1);
+
         this.lives--;
         document.getElementById('lives').innerText = `Lives: ${this.lives}`;
         this.resetPosition();
         resetCurrentLevel();
+
         if (this.lives <= 0) {
-            alert("Game Over! Restarting Level 1.");
+            alert("THE GAME REMEMBERS YOUR FAILURES. RESTARTING...");
             currentLevelIndex = 0;
             this.lives = 3;
-            document.getElementById('lives').innerText = `Lives: ${this.lives}`;
+            maliceState.uiDecay = 0;
+            document.getElementById('lives').innerText = `${this.lives} HEARTS`;
             loadLevel(currentLevelIndex);
         }
     }
@@ -338,8 +400,19 @@ function loadLevel(index) {
     currentLevel.goal.x = currentLevel.goal.initialX;
     if (currentLevel.spikes) currentLevel.spikes.forEach(s => s.hidden = true);
 
+    // Adaptive Malice: Shift platforms slightly to break muscle memory
+    currentLevel.platforms.forEach(p => {
+        if (p.width < 500) { // Only shift small/medium platforms
+            const shiftX = (Math.random() - 0.5) * maliceState.uiDecay * 50;
+            const shiftY = (Math.random() - 0.5) * maliceState.uiDecay * 20;
+            p.x = p.initialX + shiftX;
+            p.y = p.initialY + shiftY;
+        }
+    });
+
     const overlay = document.getElementById('start-overlay');
-    overlay.innerHTML = `<h1>${currentLevel.name}</h1><p>Level ${index + 1}</p><button id="start-btn">START LEVEL</button>`;
+    document.getElementById('level-indicator').innerText = `LEVEL ${index + 1}`;
+    overlay.innerHTML = `<h1>LEVEL ${index + 1}</h1><p>LEVEL DEVIL</p><button id="start-btn">BEGIN</button>`;
     overlay.classList.remove('hidden');
     document.getElementById('start-btn').onclick = () => {
         overlay.classList.add('hidden');
@@ -404,6 +477,32 @@ function gameLoop() {
     currentLevel.enemies.forEach(e => e.draw(camera));
     currentLevel.spikes.forEach(s => s.draw(camera));
     player.draw(camera);
+
+    // UI Decay / Psych Warfare
+    const scoreEl = document.getElementById('game-ui');
+    if (maliceState.uiDecay > 0.3) {
+        const jitter = (Math.random() - 0.5) * maliceState.uiDecay * 10;
+        scoreEl.style.transform = `translate(${jitter}px, ${jitter}px)`;
+        scoreEl.style.opacity = 1 - (Math.random() * maliceState.uiDecay * 0.5);
+        if (Math.random() > 0.98) {
+            document.getElementById('level-indicator').innerText = "QUIT NOW";
+            document.getElementById('stats').style.display = 'none';
+        } else {
+            document.getElementById('level-indicator').innerText = `LEVEL ${currentLevelIndex + 1}`;
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('score').innerText = player.coins;
+            document.getElementById('lives').innerText = `${player.lives} HEARTS`;
+        }
+    }
+
+    // Draw Ghost Spikes (Faint indicators of where you died)
+    ctx.fillStyle = `rgba(255, 0, 0, ${0.1 * maliceState.uiDecay})`;
+    maliceState.deaths.forEach(d => {
+        if (d.level === currentLevelIndex) {
+            ctx.fillRect(d.x - camera.x, d.y, 30, 30);
+            ctx.fillText("💀", d.x - camera.x + 5, d.y + 20);
+        }
+    });
 
     requestAnimationFrame(gameLoop);
 }
