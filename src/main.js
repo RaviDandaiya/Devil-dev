@@ -10,6 +10,7 @@ canvas.width = 800;
 canvas.height = 600;
 
 const GRAVITY = 0.8;
+let currentLevelIndex = 0;
 
 // --- Three.js Setup for 3D Character ---
 const threeScene = new THREE.Scene();
@@ -25,18 +26,44 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
 dirLight.position.set(5, 10, 7.5);
 threeScene.add(dirLight);
 
-class Camera {
-    constructor() { this.x = 0; this.width = canvas.width; }
-    follow(player) {
-        const targetX = player.x - this.width / 3;
-        this.x += (targetX - this.x) * 0.1;
-        if (this.x < 0) this.x = 0;
+class Entity {
+    constructor(x, y, width, height, color) {
+        this.x = x; this.y = y; this.width = width; this.height = height; this.color = color;
+        this.active = true;
+        this.initialX = x;
+        this.initialY = y;
+        this.velocityY = 0;
+        this.isFalling = false;
+    }
+    update() {
+        if (this.isFalling) {
+            this.velocityY += GRAVITY * 0.5;
+            this.y += this.velocityY;
+        }
+    }
+    draw(camera) {
+        if (!this.active) return;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x - camera.x, this.y, this.width, this.height);
     }
 }
 
-class Entity {
-    constructor(x, y, width, height, color) { this.x = x; this.y = y; this.width = width; this.height = height; this.color = color; this.active = true; }
-    draw(camera) { if (!this.active) return; ctx.fillStyle = this.color; ctx.fillRect(this.x - camera.x, this.y, this.width, this.height); }
+class Spikes extends Entity {
+    constructor(x, y, width = 40) {
+        super(x, y, width, 20, '#555');
+        this.hidden = true;
+    }
+    draw(camera) {
+        if (this.hidden || !this.active) return;
+        ctx.fillStyle = '#777';
+        for (let i = 0; i < this.width / 10; i++) {
+            ctx.beginPath();
+            ctx.moveTo(this.x - camera.x + i * 10, this.y + this.height);
+            ctx.lineTo(this.x - camera.x + i * 10 + 5, this.y);
+            ctx.lineTo(this.x - camera.x + i * 10 + 10, this.y + this.height);
+            ctx.fill();
+        }
+    }
 }
 
 class MysteryBlock extends Entity {
@@ -84,8 +111,7 @@ class Player {
     constructor() {
         this.width = 35;
         this.height = 50;
-        this.x = 100;
-        this.y = 400;
+        this.resetPosition();
         this.velocityX = 0;
         this.velocityY = 0;
         this.speed = 5;
@@ -103,8 +129,14 @@ class Player {
         this.loadModel();
     }
 
+    resetPosition() {
+        this.x = 100;
+        this.y = 400;
+        this.velocityX = 0;
+        this.velocityY = 0;
+    }
+
     loadModel() {
-        console.log("Loading model from ./assets/models/");
         const mtlLoader = new MTLLoader();
         mtlLoader.setPath('./assets/models/');
         mtlLoader.load('plumber.mtl', (materials) => {
@@ -116,117 +148,246 @@ class Player {
                 this.model = object;
                 threeScene.add(this.model);
                 this.modelReady = true;
-                console.log("3D Plumber Loaded!");
-            }, undefined, (err) => {
-                console.error("OBJ Loading failed:", err);
-            });
-        }, undefined, (err) => {
-            console.error("MTL Loading failed:", err);
-        });
+            }, undefined, (err) => console.error("OBJ Loading failed:", err));
+        }, undefined, (err) => console.error("MTL Loading failed:", err));
     }
 
-    update(platforms, coins, enemies, blocks, goal) {
+    update(platforms, coins, enemies, blocks, goal, spikes, triggers) {
         if (this.won) return;
 
-        if (this.velocityX > 0) { this.facingRight = true; this.rotation = 0; }
-        else if (this.velocityX < 0) { this.facingRight = false; this.rotation = Math.PI; }
-
-        this.velocityY += GRAVITY; this.y += this.velocityY;
+        // Apply Gravity
+        this.velocityY += GRAVITY;
+        this.y += this.velocityY;
         this.onGround = false;
+
+        // Check Trigger Activations
+        triggers.forEach(t => {
+            if (!t.activated && this.x > t.triggerX) {
+                t.activated = true;
+                t.action();
+            }
+        });
+
+        // Platform & Block Collisions
         [...platforms, ...blocks].forEach(p => {
             if (this.collidesWith(p)) {
-                if (this.velocityY > 0) { this.y = p.y - this.height; this.velocityY = 0; this.onGround = true; }
-                else if (this.velocityY < 0) {
-                    this.y = p.y + p.height; this.velocityY = 0;
-                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 75; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
+                if (this.velocityY > 0 && this.y + this.height - this.velocityY <= p.y) {
+                    this.y = p.y - this.height;
+                    this.velocityY = 0;
+                    this.onGround = true;
+                    if (p.triggerOnStep) p.isFalling = true;
+                } else if (this.velocityY < 0 && this.y - this.velocityY >= p.y + p.height) {
+                    this.y = p.y + p.height;
+                    this.velocityY = 0;
+                    if (p instanceof MysteryBlock && !p.hit) {
+                        p.hit = true;
+                        this.coins += 5;
+                        this.isLarge = true;
+                        this.height = 75;
+                        document.getElementById('score').innerText = `Coins: ${this.coins}`;
+                    }
                 }
             }
         });
+
+        // Side Movement & Collisions
         this.x += this.velocityX;
+        if (this.velocityX > 0) { this.facingRight = true; this.rotation = 0; }
+        else if (this.velocityX < 0) { this.facingRight = false; this.rotation = Math.PI; }
+
         [...platforms, ...blocks].forEach(p => {
             if (this.collidesWith(p)) {
                 if (this.velocityX > 0) this.x = p.x - this.width;
                 else if (this.velocityX < 0) this.x = p.x + p.width;
             }
         });
+
+        // Collectibles
         coins.forEach(c => { if (c.active && this.collidesWith(c)) { c.active = false; this.coins++; document.getElementById('score').innerText = `Coins: ${this.coins}`; } });
-        enemies.forEach(e => {
-            if (e.active && this.collidesWith(e)) {
-                if (this.velocityY > 0 && this.y + this.height < e.y + e.height / 2) { e.active = false; this.velocityY = this.jumpForce / 2; }
-                else if (this.isLarge) { this.isLarge = false; this.height = 50; e.active = false; }
-                else this.respawn();
+
+        // Hazard Collisions
+        [...enemies, ...spikes].forEach(h => {
+            if (h.active && this.collidesWith(h)) {
+                if (h instanceof Spikes && h.hidden) return;
+                if (h instanceof Enemy && this.velocityY > 0 && this.y + this.height < h.y + h.height / 2) {
+                    h.active = false;
+                    this.velocityY = this.jumpForce / 2;
+                } else if (this.isLarge) {
+                    this.isLarge = false;
+                    this.height = 50;
+                    h.active = false;
+                } else {
+                    this.respawn();
+                }
             }
         });
-        if (this.collidesWith(goal)) { this.won = true; alert("Victory!"); location.reload(); }
+
+        if (this.collidesWith(goal)) {
+            this.won = true;
+            setTimeout(() => nextLevel(), 500);
+        }
+
         if (this.y > canvas.height) this.respawn();
     }
 
     collidesWith(rect) { return this.x < rect.x + rect.width && this.x + this.width > rect.x && this.y < rect.y + rect.height && this.y + this.height > rect.y; }
-    respawn() { this.lives--; document.getElementById('lives').innerText = `Lives: ${this.lives}`; this.x = 100; this.y = 400; this.velocityY = 0; if (this.lives <= 0) { alert("Game Over!"); location.reload(); } }
+
+    respawn() {
+        this.lives--;
+        document.getElementById('lives').innerText = `Lives: ${this.lives}`;
+        this.resetPosition();
+        resetCurrentLevel();
+        if (this.lives <= 0) {
+            alert("Game Over! Restarting Level 1.");
+            currentLevelIndex = 0;
+            this.lives = 3;
+            document.getElementById('lives').innerText = `Lives: ${this.lives}`;
+            loadLevel(currentLevelIndex);
+        }
+    }
 
     draw(camera) {
         if (!this.modelReady) {
-            // Placeholder while loading
             ctx.fillStyle = 'red';
             ctx.fillRect(this.x - camera.x, this.y, this.width, this.height);
             return;
         }
-
-        // Update 3D Model State
         this.model.rotation.y = this.rotation + Math.PI / 2;
-        if (!this.onGround) {
-            this.model.rotation.x = -0.3; // Lean back when jumping
-        } else {
-            this.model.rotation.x = Math.sin(Date.now() * 0.01) * 0.1; // Gentle sway
-        }
+        this.model.rotation.x = !this.onGround ? -0.3 : Math.sin(Date.now() * 0.01) * 0.1;
 
-        // Render 3D Model to threeRenderer
         threeRenderer.render(threeScene, threeCamera);
-
-        // Draw the 3D render onto the 2D canvas
-        // Adjusting draw size to better fit the hitbox
         const drawWidth = this.width * 2.2;
         const drawHeight = this.height * 2.0;
         ctx.drawImage(threeRenderer.domElement, this.x - camera.x - (drawWidth - this.width) / 2, this.y - (drawHeight - this.height), drawWidth, drawHeight);
     }
 }
 
-const player = new Player();
-const camera = new Camera();
-const goal = { x: 2800, y: 460, width: 40, height: 100 };
-const platforms = [
-    { x: 0, y: 560, width: 3000, height: 40 },
-    { x: 400, y: 450, width: 120, height: 40 }, { x: 600, y: 350, width: 200, height: 40 },
-    { x: 900, y: 400, width: 150, height: 40 }, { x: 1200, y: 300, width: 300, height: 40 },
-    { x: 1600, y: 450, width: 100, height: 40 }, { x: 2500, y: 450, width: 200, height: 40 }
+// --- Level Data & Management ---
+const levels = [
+    {
+        name: "Level 1: The First Troll",
+        platforms: [
+            new Entity(0, 560, 800, 40, '#8B4513'), // Start ground
+            new Entity(1000, 560, 2000, 40, '#8B4513'), // End ground
+            new Entity(400, 450, 120, 40, '#8B4513'), // Safe jump
+            Object.assign(new Entity(650, 450, 100, 40, '#8B4513'), { triggerOnStep: true }), // Troll: Falls on step
+        ],
+        goal: { x: 2800, y: 460, width: 40, height: 100, initialX: 2800 },
+        coins: [new Coin(450, 410)],
+        enemies: [new Enemy(1200, 530)],
+        spikes: [],
+        triggers: [
+            {
+                triggerX: 2600, activated: false, action: () => {
+                    // Troll: Goal moves away!
+                    const g = levels[currentLevelIndex].goal;
+                    g.x += 400;
+                    console.log("Goal moved! Troll!");
+                }
+            }
+        ]
+    },
+    {
+        name: "Level 2: Hidden Dangers",
+        platforms: [
+            new Entity(0, 560, 3000, 40, '#8B4513'),
+            new Entity(400, 450, 120, 40, '#8B4513'),
+            new Entity(700, 350, 120, 40, '#8B4513'),
+        ],
+        goal: { x: 2800, y: 460, width: 40, height: 100, initialX: 2800 },
+        coins: [new Coin(450, 410), new Coin(750, 310)],
+        enemies: [],
+        spikes: [new Spikes(1000, 540, 100), new Spikes(1500, 540, 100)],
+        triggers: [
+            {
+                triggerX: 900, activated: false, action: () => {
+                    levels[1].spikes[0].hidden = false;
+                }
+            },
+            {
+                triggerX: 1400, activated: false, action: () => {
+                    levels[1].spikes[1].hidden = false;
+                }
+            }
+        ]
+    }
 ];
-const blocks = [new MysteryBlock(500, 300), new MysteryBlock(1300, 200), new MysteryBlock(2000, 350)];
-const coins = [new Coin(450, 410), new Coin(650, 310), new Coin(1000, 360), new Coin(2200, 200)];
-const enemies = [new Enemy(700, 530), new Enemy(1300, 530), new Enemy(1800, 530), new Enemy(2600, 530)];
-const clouds = [new Cloud(100, 100), new Cloud(400, 150), new Cloud(800, 80), new Cloud(1200, 120), new Cloud(1600, 100)];
+
+let player = new Player();
+const camera = new Camera();
+let currentLevel = levels[currentLevelIndex];
+
+function loadLevel(index) {
+    currentLevelIndex = index;
+    currentLevel = levels[index];
+    player.won = false;
+    player.resetPosition();
+    // Reset triggers and entity states
+    currentLevel.triggers.forEach(t => t.activated = false);
+    currentLevel.platforms.forEach(p => { p.y = p.initialY; p.isFalling = false; p.velocityY = 0; });
+    currentLevel.goal.x = currentLevel.goal.initialX;
+    if (currentLevel.spikes) currentLevel.spikes.forEach(s => s.hidden = true);
+
+    const overlay = document.getElementById('start-overlay');
+    overlay.innerHTML = `<h1>${currentLevel.name}</h1><p>Level ${index + 1}</p><button id="start-btn">START LEVEL</button>`;
+    overlay.classList.remove('hidden');
+    document.getElementById('start-btn').onclick = () => overlay.classList.add('hidden');
+}
+
+function resetCurrentLevel() {
+    currentLevel.triggers.forEach(t => t.activated = false);
+    currentLevel.platforms.forEach(p => { p.y = p.initialY; p.isFalling = false; p.velocityY = 0; });
+    currentLevel.goal.x = currentLevel.goal.initialX;
+}
+
+function nextLevel() {
+    currentLevelIndex++;
+    if (currentLevelIndex >= levels.length) {
+        alert("COMPLETED ALL LEVELS! You are the master.");
+        currentLevelIndex = 0;
+    }
+    loadLevel(currentLevelIndex);
+}
 
 const keys = {};
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
+const clouds = [new Cloud(100, 100), new Cloud(400, 150), new Cloud(800, 80), new Cloud(1200, 120), new Cloud(1600, 100)];
+
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#ADD8E6'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     clouds.forEach(c => c.draw(camera));
+
     player.velocityX = 0;
     if (keys['ArrowRight']) player.velocityX = player.speed;
     if (keys['ArrowLeft']) player.velocityX = -player.speed;
     if (keys['Space'] && player.onGround) player.velocityY = player.jumpForce;
-    player.update(platforms, coins, enemies, blocks, goal);
-    enemies.forEach(e => e.update(platforms));
+
+    player.update(currentLevel.platforms, currentLevel.coins, currentLevel.enemies, [], currentLevel.goal, currentLevel.spikes, currentLevel.triggers);
+    currentLevel.enemies.forEach(e => e.update(currentLevel.platforms));
+    currentLevel.platforms.forEach(p => p.update());
+
     camera.follow(player);
-    platforms.forEach(p => { ctx.fillStyle = '#8B4513'; ctx.fillRect(p.x - camera.x, p.y, p.width, p.height); ctx.fillStyle = '#228B22'; ctx.fillRect(p.x - camera.x, p.y, p.width, 10); });
-    blocks.forEach(b => b.draw(camera));
-    ctx.fillStyle = '#FF4500'; ctx.fillRect(goal.x - camera.x, goal.y, goal.width, goal.height);
-    ctx.fillStyle = 'white'; ctx.fillRect(goal.x - camera.x + 15, goal.y, 5, goal.height);
-    coins.forEach(c => c.draw(camera));
-    enemies.forEach(e => e.draw(camera));
+
+    currentLevel.platforms.forEach(p => {
+        ctx.fillStyle = '#8B4513'; ctx.fillRect(p.x - camera.x, p.y, p.width, p.height);
+        ctx.fillStyle = '#228B22'; ctx.fillRect(p.x - camera.x, p.y, p.width, 10);
+    });
+
+    ctx.fillStyle = '#FF4500'; ctx.fillRect(currentLevel.goal.x - camera.x, currentLevel.goal.y, currentLevel.goal.width, currentLevel.goal.height);
+    ctx.fillStyle = 'white'; ctx.fillRect(currentLevel.goal.x - camera.x + 15, currentLevel.goal.y, 5, currentLevel.goal.height);
+
+    currentLevel.coins.forEach(c => c.draw(camera));
+    currentLevel.enemies.forEach(e => e.draw(camera));
+    currentLevel.spikes.forEach(s => s.draw(camera));
     player.draw(camera);
+
     requestAnimationFrame(gameLoop);
 }
-document.getElementById('start-btn').addEventListener('click', () => { document.getElementById('start-overlay').classList.add('hidden'); gameLoop(); });
+
+document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('start-overlay').classList.add('hidden');
+    gameLoop();
+});
