@@ -82,8 +82,8 @@ class Cloud {
 
 class Player {
     constructor() {
-        this.width = 60;
-        this.height = 80;
+        this.width = 35;
+        this.height = 50;
         this.x = 100;
         this.y = 400;
         this.velocityX = 0;
@@ -138,7 +138,7 @@ class Player {
                 if (this.velocityY > 0) { this.y = p.y - this.height; this.velocityY = 0; this.onGround = true; }
                 else if (this.velocityY < 0) {
                     this.y = p.y + p.height; this.velocityY = 0;
-                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 120; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
+                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 75; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
                 }
             }
         });
@@ -153,7 +153,7 @@ class Player {
         enemies.forEach(e => {
             if (e.active && this.collidesWith(e)) {
                 if (this.velocityY > 0 && this.y + this.height < e.y + e.height / 2) { e.active = false; this.velocityY = this.jumpForce / 2; }
-                else if (this.isLarge) { this.isLarge = false; this.height = 80; e.active = false; }
+                else if (this.isLarge) { this.isLarge = false; this.height = 50; e.active = false; }
                 else this.respawn();
             }
         });
@@ -184,7 +184,10 @@ class Player {
         threeRenderer.render(threeScene, threeCamera);
 
         // Draw the 3D render onto the 2D canvas
-        ctx.drawImage(threeRenderer.domElement, this.x - camera.x - this.width / 2, this.y - this.height / 4, this.width * 2, this.height * 1.5);
+        // Adjusting draw size to better fit the hitbox
+        const drawWidth = this.width * 2.2;
+        const drawHeight = this.height * 2.0;
+        ctx.drawImage(threeRenderer.domElement, this.x - camera.x - (drawWidth - this.width) / 2, this.y - (drawHeight - this.height), drawWidth, drawHeight);
     }
 }
 
