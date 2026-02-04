@@ -1,0 +1,25 @@
+    draw(camera) {
+        ctx.fillStyle = "#000000"; // Solid Black Character
+        const drawX = this.x - camera.x;
+        const drawY = this.y;
+        
+        // Smaller compact body
+        ctx.fillRect(drawX + 3, drawY + 8, 18, 20);
+        
+        // Head
+        ctx.fillRect(drawX + 5, drawY, 14, 10);
+        
+        // White glowing eyes (devil style)
+        ctx.fillStyle = "#FFFFFF";
+        if (this.facingRight) {
+            ctx.fillRect(drawX + 13, drawY + 3, 3, 3); // Right eye
+        } else {
+            ctx.fillRect(drawX + 8, drawY + 3, 3, 3); // Left eye
+        }
+        
+        // Legs (simplified animation)
+        ctx.fillStyle = "#000000";
+        const walk = Math.sin(Date.now() * 0.015) * 4;
+        ctx.fillRect(drawX + 5, drawY + 28, 6, 8 + (this.velocityX !== 0 ? walk : 0));
+        ctx.fillRect(drawX + 13, drawY + 28, 6, 8 - (this.velocityX !== 0 ? walk : 0));
+    }

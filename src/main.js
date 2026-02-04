@@ -409,6 +409,12 @@ class Player {
         ctx.fillRect(drawX + 5, drawY + 10, 20, 25);
         // Head
         ctx.fillRect(drawX + 8, drawY, 14, 12);
+
+        // White eyes
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(drawX + (this.facingRight ? 15 : 9), drawY + 4, 3, 3);
+        ctx.fillStyle = "#000000";
+
         // Legs (simplified animation)
         const walk = Math.sin(Date.now() * 0.015) * 5;
         ctx.fillRect(drawX + 5, drawY + 35, 8, 10 + (this.velocityX !== 0 ? walk : 0));
@@ -542,8 +548,7 @@ function restartGame() {
     const gameoverOverlay = document.getElementById('gameover-overlay');
     gameoverOverlay.classList.add('hidden');
 
-    // Reset everything
-    currentLevelIndex = 0;
+    // Keep current level - don't reset to 0
     player.lives = 3;
     player.coins = 0;
     maliceState.uiDecay = 0;
@@ -553,8 +558,8 @@ function restartGame() {
     document.getElementById('lives').innerText = `${player.lives} HEARTS`;
     document.getElementById('score').innerText = player.coins;
 
-    // Reload level and start game
-    loadLevel(0);
+    // Reload current level (not level 0!)
+    loadLevel(currentLevelIndex);
     gameStarted = true;
 }
 
