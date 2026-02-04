@@ -13,10 +13,10 @@ body {
 }
 
 #gameCanvas {
-    background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
-    /* Sky Blue */
-    border: 4px solid #333;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(to bottom, #00000D 0%, #191970 100%);
+    /* Midnight Blue to Dark */
+    border: 4px solid #4B0082;
+    box-shadow: 0 0 50px rgba(75, 0, 130, 0.5);
 }
 
 #game-ui {

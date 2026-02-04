@@ -334,6 +334,7 @@ function loadLevel(index) {
     overlay.classList.remove('hidden');
     document.getElementById('start-btn').onclick = () => {
         overlay.classList.add('hidden');
+        player.won = false; // Ensure player isn't in won state
         if (!gameStarted) {
             gameStarted = true;
             gameLoop();
@@ -364,8 +365,12 @@ const clouds = [new Cloud(100, 100), new Cloud(400, 150), new Cloud(800, 80), ne
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#ADD8E6'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    clouds.forEach(c => c.draw(camera));
+    ctx.fillStyle = '#00000D'; ctx.fillRect(0, 0, canvas.width, canvas.height); // Night theme
+    clouds.forEach(c => {
+        ctx.globalAlpha = 0.3; // Dimmer clouds for night
+        c.draw(camera);
+        ctx.globalAlpha = 1.0;
+    });
 
     player.velocityX = 0;
     if (keys['ArrowRight']) player.velocityX = player.speed;
