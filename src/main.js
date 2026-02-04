@@ -1,3 +1,7 @@
+import * as THREE from 'three';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -5,6 +9,20 @@ canvas.width = 800;
 canvas.height = 600;
 
 const GRAVITY = 0.8;
+
+// --- Three.js Setup for 3D Character ---
+const threeScene = new THREE.Scene();
+const threeCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+const threeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+threeRenderer.setSize(256, 256); // Character render resolution
+threeCamera.position.set(0, 1, 5);
+threeCamera.lookAt(0, 1, 0);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+threeScene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+dirLight.position.set(5, 10, 7.5);
+threeScene.add(dirLight);
 
 class Camera {
     constructor() { this.x = 0; this.width = canvas.width; }
@@ -63,8 +81,8 @@ class Cloud {
 
 class Player {
     constructor() {
-        this.width = 45; // Slightly wider for the sprite
-        this.height = 60; // Slightly taller
+        this.width = 60;
+        this.height = 80;
         this.x = 100;
         this.y = 400;
         this.velocityX = 0;
@@ -77,16 +95,35 @@ class Player {
         this.won = false;
         this.isLarge = false;
         this.facingRight = true;
+        this.rotation = 0;
 
-        // Load Sprite
-        this.sprite = new Image();
-        this.sprite.src = './assets/plumber.png';
+        // Load 3D Model
+        this.modelReady = false;
+        this.loadModel();
     }
+
+    loadModel() {
+        const mtlLoader = new MTLLoader();
+        mtlLoader.setPath('./assets/models/');
+        mtlLoader.load('plumber.mtl', (materials) => {
+            materials.preload();
+            const objLoader = new OBJLoader();
+            objLoader.setMaterials(materials);
+            objLoader.setPath('./assets/models/');
+            objLoader.load('plumber.obj', (object) => {
+                this.model = object;
+                threeScene.add(this.model);
+                this.modelReady = true;
+                console.log("3D Plumber Loaded!");
+            });
+        });
+    }
+
     update(platforms, coins, enemies, blocks, goal) {
         if (this.won) return;
 
-        if (this.velocityX > 0) this.facingRight = true;
-        else if (this.velocityX < 0) this.facingRight = false;
+        if (this.velocityX > 0) { this.facingRight = true; this.rotation = 0; }
+        else if (this.velocityX < 0) { this.facingRight = false; this.rotation = Math.PI; }
 
         this.velocityY += GRAVITY; this.y += this.velocityY;
         this.onGround = false;
@@ -95,7 +132,7 @@ class Player {
                 if (this.velocityY > 0) { this.y = p.y - this.height; this.velocityY = 0; this.onGround = true; }
                 else if (this.velocityY < 0) {
                     this.y = p.y + p.height; this.velocityY = 0;
-                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 90; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
+                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 120; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
                 }
             }
         });
@@ -110,24 +147,38 @@ class Player {
         enemies.forEach(e => {
             if (e.active && this.collidesWith(e)) {
                 if (this.velocityY > 0 && this.y + this.height < e.y + e.height / 2) { e.active = false; this.velocityY = this.jumpForce / 2; }
-                else if (this.isLarge) { this.isLarge = false; this.height = 60; e.active = false; }
+                else if (this.isLarge) { this.isLarge = false; this.height = 80; e.active = false; }
                 else this.respawn();
             }
         });
         if (this.collidesWith(goal)) { this.won = true; alert("Victory!"); location.reload(); }
         if (this.y > canvas.height) this.respawn();
     }
+
     collidesWith(rect) { return this.x < rect.x + rect.width && this.x + this.width > rect.x && this.y < rect.y + rect.height && this.y + this.height > rect.y; }
     respawn() { this.lives--; document.getElementById('lives').innerText = `Lives: ${this.lives}`; this.x = 100; this.y = 400; this.velocityY = 0; if (this.lives <= 0) { alert("Game Over!"); location.reload(); } }
+
     draw(camera) {
-        ctx.save();
-        if (!this.facingRight) {
-            ctx.scale(-1, 1);
-            ctx.drawImage(this.sprite, -(this.x - camera.x + this.width), this.y, this.width, this.height);
-        } else {
-            ctx.drawImage(this.sprite, this.x - camera.x, this.y, this.width, this.height);
+        if (!this.modelReady) {
+            // Placeholder while loading
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x - camera.x, this.y, this.width, this.height);
+            return;
         }
-        ctx.restore();
+
+        // Update 3D Model State
+        this.model.rotation.y = this.rotation + Math.PI / 2;
+        if (!this.onGround) {
+            this.model.rotation.x = -0.3; // Lean back when jumping
+        } else {
+            this.model.rotation.x = Math.sin(Date.now() * 0.01) * 0.1; // Gentle sway
+        }
+
+        // Render 3D Model to threeRenderer
+        threeRenderer.render(threeScene, threeCamera);
+
+        // Draw the 3D render onto the 2D canvas
+        ctx.drawImage(threeRenderer.domElement, this.x - camera.x - this.width / 2, this.y - this.height / 4, this.width * 2, this.height * 1.5);
     }
 }
 
