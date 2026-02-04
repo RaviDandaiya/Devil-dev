@@ -1,6 +1,29 @@
 :root {
+    --bg-color: #FFCC00;
+    /* Classic Devil Yellow */
+    --platform-color: #B83018;
+    /* Dark Red-Brown */
+    --ui-accent: #1A100E;
+    --text-color: #000;
+    --shadow-color: rgba(0, 0, 0, 0.2);
     font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
     background-color: #000;
+}
+
+[data-theme="midnight"] {
+    --bg-color: #00000D;
+    --platform-color: #4B0082;
+    --ui-accent: #9370DB;
+    --text-color: #fff;
+    --shadow-color: rgba(75, 0, 130, 0.5);
+}
+
+[data-theme="hell"] {
+    --bg-color: #2D0000;
+    --platform-color: #8B0000;
+    --ui-accent: #FF0000;
+    --text-color: #fff;
+    --shadow-color: rgba(255, 0, 0, 0.4);
 }
 
 body {
@@ -14,10 +37,9 @@ body {
 }
 
 #gameCanvas {
-    background: #C17D5C;
-    /* Dark Orange/Brown from image */
-    border: 4px solid #1A100E;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    background: var(--bg-color);
+    border: 4px solid var(--ui-accent);
+    box-shadow: 0 0 50px var(--shadow-color);
 }
 
 #game-ui {
@@ -30,7 +52,7 @@ body {
     flex-direction: column;
     align-items: center;
     text-transform: uppercase;
-    color: #fff;
+    color: var(--text-color);
     font-weight: 900;
     letter-spacing: 2px;
 }
@@ -38,14 +60,13 @@ body {
 #level-indicator {
     font-size: 48px;
     margin-bottom: 5px;
-    text-shadow: 4px 4px 0px #4B0082;
+    text-shadow: 4px 4px 0px var(--platform-color);
 }
 
 #stats {
     font-size: 18px;
     display: flex;
     gap: 30px;
-    color: #9370DB;
 }
 
 #start-overlay {
@@ -65,11 +86,33 @@ body {
     text-align: center;
 }
 
+#theme-selector {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.theme-btn {
+    padding: 8px 15px;
+    border: 2px solid #555;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.theme-btn.active {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
 #start-overlay h1 {
     font-size: 64px;
     margin: 0;
-    letter-spacing: 10px;
-    text-shadow: 5px 5px 0px #4B0082;
+    letter-spacing: 12px;
+    text-shadow: 5px 5px 0px var(--platform-color);
 }
 
 #start-overlay p {
@@ -91,7 +134,7 @@ body {
 }
 
 #start-btn:hover {
-    background: #4B0082;
+    background: var(--platform-color);
     color: #fff;
     transform: scale(1.05);
 }

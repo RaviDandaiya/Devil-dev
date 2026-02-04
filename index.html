@@ -17,9 +17,14 @@
     </div>
     <canvas id="gameCanvas"></canvas>
     <div id="start-overlay">
-        <h1>DEVIL DEV</h1>
-        <p>Use ARROW KEYS to Move | SPACE to Jump</p>
-        <button id="start-btn">START GAME</button>
+        <h1>DEVIL-DEV</h1>
+        <p>CHOOSE YOUR THEME</p>
+        <div id="theme-selector">
+            <button class="theme-btn active" data-theme="classic">CLASSIC</button>
+            <button class="theme-btn" data-theme="midnight">MIDNIGHT</button>
+            <button class="theme-btn" data-theme="hell">HELLish</button>
+        </div>
+        <button id="start-btn">BEGIN</button>
     </div>
     <script type="module" src="./src/main.js"></script>
 </body>

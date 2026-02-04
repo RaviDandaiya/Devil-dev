@@ -1,11 +1,5 @@
-import './style.css';
-import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
 canvas.width = 800;
 canvas.height = 600;
 
@@ -23,19 +17,23 @@ const maliceState = {
     uiDecay: 0 // 0 to 1
 };
 
-// --- Three.js Setup for 3D Character ---
-const threeScene = new THREE.Scene();
-const threeCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-const threeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-threeRenderer.setSize(256, 256); // Character render resolution
-threeCamera.position.set(0, 1, 5);
-threeCamera.lookAt(0, 1, 0);
+// --- Theme Logic ---
+let activeTheme = 'classic';
+function setTheme(theme) {
+    activeTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
+}
+window.setTheme = setTheme; // Make accessible for buttons
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-threeScene.add(ambientLight);
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-dirLight.position.set(5, 10, 7.5);
-threeScene.add(dirLight);
+// Set initial theme choice listener
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('theme-btn')) {
+        setTheme(e.target.getAttribute('data-theme'));
+    }
+});
 
 class Camera {
     constructor() { this.x = 0; this.width = canvas.width; }
@@ -63,7 +61,8 @@ class Entity {
     }
     draw(camera) {
         if (!this.active) return;
-        ctx.fillStyle = this.color;
+        const color = getComputedStyle(document.documentElement).getPropertyValue('--platform-color').trim() || '#B83018';
+        ctx.fillStyle = color;
         ctx.fillRect(this.x - camera.x, this.y, this.width, this.height);
     }
 }
@@ -131,8 +130,8 @@ class Cloud {
 
 class Player {
     constructor() {
-        this.width = 35;
-        this.height = 50;
+        this.width = 30;
+        this.height = 45;
         this.resetPosition();
         this.velocityX = 0;
         this.velocityY = 0;
@@ -142,14 +141,7 @@ class Player {
         this.coins = 0;
         this.lives = 3;
         this.won = false;
-        this.isLarge = false;
         this.facingRight = true;
-        this.rotation = 0;
-
-        // Load 3D Model
-        this.modelReady = false;
-        this.loadModel();
-        this.jumpCooldown = 0;
     }
 
     resetPosition() {
@@ -159,27 +151,7 @@ class Player {
         this.velocityY = 0;
     }
 
-    loadModel() {
-        const mtlLoader = new MTLLoader();
-        mtlLoader.setPath('./assets/models/');
-        mtlLoader.load('plumber.mtl', (materials) => {
-            materials.preload();
-            const objLoader = new OBJLoader();
-            objLoader.setMaterials(materials);
-            objLoader.setPath('./assets/models/');
-            objLoader.load('plumber.obj', (object) => {
-                this.model = object;
-                // Silhouette: Color all parts black
-                this.model.traverse((child) => {
-                    if (child.isMesh) {
-                        child.material = new THREE.MeshBasicMaterial({ color: 0x000000 });
-                    }
-                });
-                threeScene.add(this.model);
-                this.modelReady = true;
-            }, undefined, (err) => console.error("OBJ Loading failed:", err));
-        }, undefined, (err) => console.error("MTL Loading failed:", err));
-    }
+    // No 3D model loading
 
     update(platforms, coins, enemies, blocks, goal, spikes, triggers) {
         if (this.won) return;
@@ -327,18 +299,18 @@ class Player {
     }
 
     draw(camera) {
-        if (!this.modelReady) {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(this.x - camera.x, this.y, this.width, this.height);
-            return;
-        }
-        this.model.rotation.y = this.rotation + Math.PI / 2;
-        this.model.rotation.x = !this.onGround ? -0.3 : Math.sin(Date.now() * 0.01) * 0.1;
+        ctx.fillStyle = "#000000"; // Solid Black Silhouette
+        const drawX = this.x - camera.x;
+        const drawY = this.y;
 
-        threeRenderer.render(threeScene, threeCamera);
-        const drawWidth = this.width * 2.2;
-        const drawHeight = this.height * 2.0;
-        ctx.drawImage(threeRenderer.domElement, this.x - camera.x - (drawWidth - this.width) / 2, this.y - (drawHeight - this.height), drawWidth, drawHeight);
+        // Blocky Body
+        ctx.fillRect(drawX + 5, drawY + 10, 20, 25);
+        // Head
+        ctx.fillRect(drawX + 8, drawY, 14, 12);
+        // Legs (simplified animation)
+        const walk = Math.sin(Date.now() * 0.015) * 5;
+        ctx.fillRect(drawX + 5, drawY + 35, 8, 10 + (this.velocityX !== 0 ? walk : 0));
+        ctx.fillRect(drawX + 17, drawY + 35, 8, 10 - (this.velocityX !== 0 ? walk : 0));
     }
 }
 
@@ -454,10 +426,12 @@ window.addEventListener('keyup', e => keys[e.code] = false);
 const clouds = [new Cloud(100, 100), new Cloud(400, 150), new Cloud(800, 80), new Cloud(1200, 120), new Cloud(1600, 100)];
 
 function gameLoop() {
+    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#C17D5C'; ctx.fillRect(0, 0, canvas.width, canvas.height); // Theme background
+    ctx.fillStyle = bgColor; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     clouds.forEach(c => {
-        ctx.globalAlpha = 0.15; // Faint silhouette clouds
+        ctx.globalAlpha = 0.1;
         c.draw(camera);
         ctx.globalAlpha = 1.0;
     });
