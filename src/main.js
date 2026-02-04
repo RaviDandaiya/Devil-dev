@@ -47,7 +47,7 @@ class Camera {
 }
 
 class Entity {
-    constructor(x, y, width, height, color) {
+    constructor(x, y, width, height, color = '#1A100E') {
         this.x = x; this.y = y; this.width = width; this.height = height; this.color = color;
         this.active = true;
         this.initialX = x;
@@ -70,12 +70,12 @@ class Entity {
 
 class Spikes extends Entity {
     constructor(x, y, width = 40) {
-        super(x, y, width, 20, '#555');
+        super(x, y, width, 20, '#1A100E');
         this.hidden = true;
     }
     draw(camera) {
         if (this.hidden || !this.active) return;
-        ctx.fillStyle = '#777';
+        ctx.fillStyle = '#1A100E';
         for (let i = 0; i < this.width / 10; i++) {
             ctx.beginPath();
             ctx.moveTo(this.x - camera.x + i * 10, this.y + this.height);
@@ -87,26 +87,27 @@ class Spikes extends Entity {
 }
 
 class MysteryBlock extends Entity {
-    constructor(x, y) { super(x, y, 40, 40, '#FFA500'); this.hit = false; }
+    constructor(x, y) { super(x, y, 40, 40, '#1A100E'); this.hit = false; }
     draw(camera) {
-        ctx.fillStyle = this.hit ? '#8B4513' : this.color;
+        ctx.fillStyle = this.hit ? '#3A1F13' : this.color;
         ctx.fillRect(this.x - camera.x, this.y, this.width, this.height);
-        ctx.strokeStyle = '#000'; ctx.strokeRect(this.x - camera.x, this.y, this.width, this.height);
-        if (!this.hit) { ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.fillText('?', this.x - camera.x + 15, this.y + 25); }
+        // Remove stroke for silhouette look
+        if (!this.hit) { ctx.fillStyle = '#C17D5C'; ctx.font = '20px Arial'; ctx.fillText('?', this.x - camera.x + 15, this.y + 25); }
     }
 }
 
 class Coin extends Entity {
-    constructor(x, y) { super(x, y, 20, 20, '#FFD700'); }
+    constructor(x, y) { super(x, y, 20, 20, '#1A100E'); }
     draw(camera) {
         if (!this.active) return;
         ctx.beginPath(); ctx.arc(this.x - camera.x + 10, this.y + 10, 10, 0, Math.PI * 2);
-        ctx.fillStyle = this.color; ctx.fill(); ctx.strokeStyle = '#DAA520'; ctx.stroke();
+        ctx.fillStyle = this.color; ctx.fill();
+        // Silhouette: Fill only, no gold stroke
     }
 }
 
 class Enemy extends Entity {
-    constructor(x, y) { super(x, y, 35, 30, '#8B0000'); this.speed = -2; }
+    constructor(x, y) { super(x, y, 35, 30, '#1A100E'); this.speed = -2; }
     update(platforms) {
         if (!this.active) return;
         this.x += this.speed;
@@ -119,7 +120,8 @@ class Enemy extends Entity {
 class Cloud {
     constructor(x, y) { this.x = x; this.y = y; }
     draw(camera) {
-        ctx.fillStyle = 'white'; ctx.beginPath();
+        ctx.fillStyle = '#1A100E'; ctx.beginPath();
+        // Faint silhouette clouds
         ctx.arc(this.x - camera.x * 0.5 + 20, this.y, 25, 0, Math.PI * 2);
         ctx.arc(this.x - camera.x * 0.5 + 50, this.y - 10, 30, 0, Math.PI * 2);
         ctx.arc(this.x - camera.x * 0.5 + 80, this.y, 25, 0, Math.PI * 2);
@@ -167,6 +169,12 @@ class Player {
             objLoader.setPath('./assets/models/');
             objLoader.load('plumber.obj', (object) => {
                 this.model = object;
+                // Silhouette: Color all parts black
+                this.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                    }
+                });
                 threeScene.add(this.model);
                 this.modelReady = true;
             }, undefined, (err) => console.error("OBJ Loading failed:", err));
@@ -447,9 +455,9 @@ const clouds = [new Cloud(100, 100), new Cloud(400, 150), new Cloud(800, 80), ne
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#00000D'; ctx.fillRect(0, 0, canvas.width, canvas.height); // Night theme
+    ctx.fillStyle = '#C17D5C'; ctx.fillRect(0, 0, canvas.width, canvas.height); // Theme background
     clouds.forEach(c => {
-        ctx.globalAlpha = 0.3; // Dimmer clouds for night
+        ctx.globalAlpha = 0.15; // Faint silhouette clouds
         c.draw(camera);
         ctx.globalAlpha = 1.0;
     });
