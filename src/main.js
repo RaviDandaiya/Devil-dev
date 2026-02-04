@@ -27,6 +27,15 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
 dirLight.position.set(5, 10, 7.5);
 threeScene.add(dirLight);
 
+class Camera {
+    constructor() { this.x = 0; this.width = canvas.width; }
+    follow(player) {
+        const targetX = player.x - this.width / 3;
+        this.x += (targetX - this.x) * 0.1;
+        if (this.x < 0) this.x = 0;
+    }
+}
+
 class Entity {
     constructor(x, y, width, height, color) {
         this.x = x; this.y = y; this.width = width; this.height = height; this.color = color;
@@ -266,7 +275,7 @@ class Player {
 // --- Level Data & Management ---
 const levels = [
     {
-        name: "Level 1: The First Troll",
+        name: "Devil Dev - Level 1",
         platforms: [
             new Entity(0, 560, 800, 40, '#8B4513'), // Start ground
             new Entity(1000, 560, 2000, 40, '#8B4513'), // End ground
