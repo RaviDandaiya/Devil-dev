@@ -1,11 +1,12 @@
 :root {
-    --bg-color: #FFCC00;
-    /* Classic Devil Yellow */
-    --platform-color: #B83018;
-    /* Dark Red-Brown */
-    --ui-accent: #1A100E;
-    --text-color: #000;
-    --shadow-color: rgba(0, 0, 0, 0.2);
+    --bg-color: #1A0F0A;
+    /* Much darker brown background */
+    --platform-color: #2D1810;
+    /* Dark brown platforms */
+    --ui-accent: #0A0604;
+    --text-color: #FFA500;
+    /* Orange text for visibility */
+    --shadow-color: rgba(0, 0, 0, 0.6);
     font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
     background-color: #000;
 }
@@ -62,15 +63,17 @@ body {
 }
 
 #level-indicator {
-    font-size: 48px;
+    font-size: 32px;
+    /* Smaller UI */
     margin-bottom: 5px;
-    text-shadow: 4px 4px 0px var(--platform-color);
+    text-shadow: 3px 3px 0px var(--platform-color);
 }
 
 #stats {
-    font-size: 18px;
+    font-size: 14px;
+    /* Smaller UI */
     display: flex;
-    gap: 30px;
+    gap: 20px;
 }
 
 #start-overlay {

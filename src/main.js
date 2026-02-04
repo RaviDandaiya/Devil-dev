@@ -222,8 +222,8 @@ class Cloud {
 
 class Player {
     constructor() {
-        this.width = 30;
-        this.height = 45;
+        this.width = 24;  // Smaller character
+        this.height = 36; // Smaller character
         this.resetPosition();
         this.velocityX = 0;
         this.velocityY = 0;
@@ -426,7 +426,7 @@ const levels = [
             new Entity(950, 420, 150, 20, '#8B4513'), // Next platform
             new Entity(1200, 560, 1200, 40, '#8B4513'), // Final stretch
         ],
-        goal: { x: 2200, y: 460, width: 60, height: 100, initialX: 2200 },
+        goal: { x: 2200, y: 490, width: 40, height: 70, initialX: 2200 },  // Smaller goal
         coins: [new Coin(750, 440), new Coin(1000, 380)],
         enemies: [new Enemy(1400, 530)],
         spikes: [new Spikes(1100, 540, 80)],
@@ -441,7 +441,7 @@ const levels = [
             new Entity(900, 360, 120, 20, '#8B4513'),
             new Entity(1100, 560, 1400, 40, '#8B4513'),
         ],
-        goal: { x: 2300, y: 460, width: 60, height: 100, initialX: 2300 },
+        goal: { x: 2300, y: 490, width: 40, height: 70, initialX: 2300 },  // Smaller goal
         coins: [new Coin(550, 450), new Coin(750, 380), new Coin(950, 320)],
         enemies: [new Enemy(1300, 530), new Enemy(1800, 530)],
         spikes: [new Spikes(1500, 540, 100)],
@@ -464,7 +464,7 @@ const levels = [
             new Entity(1050, 400, 100, 20, '#8B4513'),
             new Entity(1250, 560, 1500, 40, '#8B4513'),
         ],
-        goal: { x: 2500, y: 460, width: 60, height: 100, initialX: 2500 },
+        goal: { x: 2500, y: 490, width: 40, height: 70, initialX: 2500 },  // Smaller goal
         coins: [new Coin(500, 440), new Coin(700, 360), new Coin(1100, 360)],
         enemies: [new Enemy(1400, 530), new Enemy(1700, 530), new Enemy(2000, 530)],
         spikes: [new Spikes(1600, 540, 80), new Spikes(1900, 540, 80)],
