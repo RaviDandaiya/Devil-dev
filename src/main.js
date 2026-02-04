@@ -63,12 +63,31 @@ class Cloud {
 
 class Player {
     constructor() {
-        this.width = 30; this.height = 40; this.x = 100; this.y = 400;
-        this.velocityX = 0; this.velocityY = 0; this.speed = 5; this.jumpForce = -15;
-        this.onGround = false; this.coins = 0; this.lives = 3; this.won = false; this.isLarge = false;
+        this.width = 45; // Slightly wider for the sprite
+        this.height = 60; // Slightly taller
+        this.x = 100;
+        this.y = 400;
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.speed = 5;
+        this.jumpForce = -15;
+        this.onGround = false;
+        this.coins = 0;
+        this.lives = 3;
+        this.won = false;
+        this.isLarge = false;
+        this.facingRight = true;
+
+        // Load Sprite
+        this.sprite = new Image();
+        this.sprite.src = './assets/plumber.png';
     }
     update(platforms, coins, enemies, blocks, goal) {
         if (this.won) return;
+
+        if (this.velocityX > 0) this.facingRight = true;
+        else if (this.velocityX < 0) this.facingRight = false;
+
         this.velocityY += GRAVITY; this.y += this.velocityY;
         this.onGround = false;
         [...platforms, ...blocks].forEach(p => {
@@ -76,7 +95,7 @@ class Player {
                 if (this.velocityY > 0) { this.y = p.y - this.height; this.velocityY = 0; this.onGround = true; }
                 else if (this.velocityY < 0) {
                     this.y = p.y + p.height; this.velocityY = 0;
-                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 60; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
+                    if (p instanceof MysteryBlock && !p.hit) { p.hit = true; this.coins += 5; this.isLarge = true; this.height = 90; document.getElementById('score').innerText = `Coins: ${this.coins}`; }
                 }
             }
         });
@@ -91,7 +110,7 @@ class Player {
         enemies.forEach(e => {
             if (e.active && this.collidesWith(e)) {
                 if (this.velocityY > 0 && this.y + this.height < e.y + e.height / 2) { e.active = false; this.velocityY = this.jumpForce / 2; }
-                else if (this.isLarge) { this.isLarge = false; this.height = 40; e.active = false; }
+                else if (this.isLarge) { this.isLarge = false; this.height = 60; e.active = false; }
                 else this.respawn();
             }
         });
@@ -100,7 +119,16 @@ class Player {
     }
     collidesWith(rect) { return this.x < rect.x + rect.width && this.x + this.width > rect.x && this.y < rect.y + rect.height && this.y + this.height > rect.y; }
     respawn() { this.lives--; document.getElementById('lives').innerText = `Lives: ${this.lives}`; this.x = 100; this.y = 400; this.velocityY = 0; if (this.lives <= 0) { alert("Game Over!"); location.reload(); } }
-    draw(camera) { ctx.fillStyle = this.isLarge ? '#ff4500' : '#ff0000'; ctx.fillRect(this.x - camera.x, this.y, this.width, this.height); ctx.fillStyle = 'white'; ctx.fillRect(this.x - camera.x + 20, this.y + 5, 5, 5); }
+    draw(camera) {
+        ctx.save();
+        if (!this.facingRight) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(this.sprite, -(this.x - camera.x + this.width), this.y, this.width, this.height);
+        } else {
+            ctx.drawImage(this.sprite, this.x - camera.x, this.y, this.width, this.height);
+        }
+        ctx.restore();
+    }
 }
 
 const player = new Player();
