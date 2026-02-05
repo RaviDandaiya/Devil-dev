@@ -510,7 +510,12 @@ class Player {
     }
 
     draw(camera) {
-        ctx.fillStyle = "#000000"; // Solid Black Silhouette
+        // GLOW EFFECT for visibility
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#FF4500"; // Lava Glow
+
+        ctx.fillStyle = "#FF4500"; // Lava Red Character
         const drawX = this.x - camera.x;
         const drawY = this.y;
 
@@ -519,15 +524,18 @@ class Player {
         // Head
         ctx.fillRect(drawX + 8, drawY, 14, 12);
 
-        // White eyes
+        // White eyes (Sharp contrast)
         ctx.fillStyle = "#FFFFFF";
+        ctx.shadowBlur = 0; // No blur for eyes
         ctx.fillRect(drawX + (this.facingRight ? 15 : 9), drawY + 4, 3, 3);
-        ctx.fillStyle = "#000000";
 
-        // Legs (simplified animation)
+        // Legs 
+        ctx.fillStyle = "#FF6347"; // Lighter orange for legs
         const walk = Math.sin(Date.now() * 0.015) * 5;
         ctx.fillRect(drawX + 5, drawY + 35, 8, 10 + (this.velocityX !== 0 ? walk : 0));
         ctx.fillRect(drawX + 17, drawY + 35, 8, 10 - (this.velocityX !== 0 ? walk : 0));
+
+        ctx.restore();
     }
 }
 
@@ -1350,5 +1358,44 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// Procedural Extension for Progressive Difficulty
+function expandLevels() {
+    levels.forEach((level, index) => {
+        if (index > 4) { // Start extending from Level 6
+            // "Step by Step" increase: Add repeated segments based on level index
+            // Level 6 adds ~400px, Level 30 adds ~5000px
+            const extensionCount = Math.floor((index - 4) / 2) + 1;
+
+            if (level.platforms.length > 0) {
+                const lastPlat = level.platforms[level.platforms.length - 1];
+                let currentX = lastPlat.x + lastPlat.width + 150; // Start after last platform
+
+                for (let i = 0; i < extensionCount; i++) {
+                    // Create a bridge of platforms
+                    const width = 100 + Math.random() * 100;
+                    const y = 400 + Math.random() * 150; // Random height
+
+                    level.platforms.push(new Entity(currentX, y, width, 20, '#8B4513'));
+
+                    // Add spike occasionally
+                    if (Math.random() > 0.5) {
+                        // Add enemy or spike?
+                        // level.enemies can be undefined if empty in definition? 
+                        // My level defs have empty arrays, so push is safe.
+                        if (level.spikes) level.spikes.push(new Spikes(currentX + width / 2 - 15, y - 30, 30));
+                    }
+
+                    currentX += width + 150 + (index * 5); // Gap increases slightly with level
+                }
+
+                // Update goal to end of new extension
+                level.goal.x = currentX + 100;
+                level.goal.initialX = level.goal.x;
+            }
+        }
+    });
+}
+
 // Initial Load
+expandLevels(); // Apply procedural extension
 loadLevel(0);
