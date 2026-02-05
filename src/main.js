@@ -1469,31 +1469,7 @@ function expandLevels() {
     });
 }
 
-for (let i = 0; i < extensionCount; i++) {
-    // Create a bridge of platforms
-    const width = 100 + Math.random() * 100;
-    const y = 400 + Math.random() * 150; // Random height
 
-    level.platforms.push(new Entity(currentX, y, width, 20, '#8B4513'));
-
-    // Add spike occasionally
-    if (Math.random() > 0.5) {
-        // Add enemy or spike?
-        // level.enemies can be undefined if empty in definition? 
-        // My level defs have empty arrays, so push is safe.
-        if (level.spikes) level.spikes.push(new Spikes(currentX + width / 2 - 15, y - 30, 30));
-    }
-
-    currentX += width + 150 + (index * 5); // Gap increases slightly with level
-}
-
-// Update goal to end of new extension
-level.goal.x = currentX + 100;
-level.goal.initialX = level.goal.x;
-            }
-        }
-    });
-}
 
 // Initial Load
 expandLevels(); // Apply procedural extension
