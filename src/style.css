@@ -92,7 +92,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.7);
+    /* Semi-transparent to show game */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -101,6 +102,8 @@ body {
     z-index: 50;
     text-transform: uppercase;
     text-align: center;
+    backdrop-filter: blur(5px);
+    /* Add blur for premium feel */
 }
 
 #theme-selector {
