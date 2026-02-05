@@ -208,14 +208,28 @@ class Spikes extends Entity {
     }
     draw(camera) {
         if (this.hidden || !this.active) return;
-        ctx.fillStyle = '#1A100E';
+        ctx.save();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#FF0000"; // Red danger glow
+
+        ctx.fillStyle = '#1A100E'; // Dark Base
         for (let i = 0; i < this.width / 10; i++) {
+            // Spike Base
             ctx.beginPath();
             ctx.moveTo(this.x - camera.x + i * 10, this.y + this.height);
             ctx.lineTo(this.x - camera.x + i * 10 + 5, this.y);
             ctx.lineTo(this.x - camera.x + i * 10 + 10, this.y + this.height);
             ctx.fill();
+
+            // Highlight Tip (Red)
+            ctx.beginPath();
+            ctx.moveTo(this.x - camera.x + i * 10 + 5, this.y);
+            ctx.lineTo(this.x - camera.x + i * 10 + 5, this.y + 8);
+            ctx.strokeStyle = "#FF0000";
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
+        ctx.restore();
     }
 }
 
@@ -230,12 +244,36 @@ class MysteryBlock extends Entity {
 }
 
 class Coin extends Entity {
-    constructor(x, y) { super(x, y, 20, 20, '#1A100E'); }
+    constructor(x, y) { super(x, y, 20, 20, '#FFD700'); } // Gold Color
     draw(camera) {
         if (!this.active) return;
-        ctx.beginPath(); ctx.arc(this.x - camera.x + 10, this.y + 10, 10, 0, Math.PI * 2);
-        ctx.fillStyle = this.color; ctx.fill();
-        // Silhouette: Fill only, no gold stroke
+        const cx = this.x - camera.x + 10;
+        const cy = this.y + 10;
+
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#FFD700"; // Gold Glow
+
+        // Outer Gold Ring with Gradient
+        const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 10);
+        grad.addColorStop(0, "#FFFFE0"); // Light yellow center
+        grad.addColorStop(1, "#DAA520"); // Gold edge
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = "#FFFF00"; // Bright Yellow border
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Inner Sparkle
+        ctx.beginPath();
+        ctx.arc(cx - 3, cy - 3, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.fill();
+
+        ctx.restore();
     }
 }
 
