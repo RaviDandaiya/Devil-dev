@@ -221,20 +221,10 @@ body {
     border-color: rgba(255, 69, 0, 0.6);
 }
 
-/* Slight orange tint */
-border-color: rgba(255, 69, 0, 0.4);
-}
-
 .mobile-btn:active {
     background: rgba(255, 255, 255, 0.4);
-    transform: translateX(-50%) scale(0.95);
-    /* Keep centering transform for jump */
-}
-
-#btn-left:active,
-#btn-right:active {
     transform: scale(0.95);
-    /* Normal scale for others */
+    /* Simple scale for all buttons */
 }
 
 @media (max-width: 1024px) {
