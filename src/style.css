@@ -210,16 +210,19 @@ body {
 }
 
 #btn-jump {
-    left: 50%;
-    transform: translateX(-50%);
-    /* Centered */
-    width: 120px;
-    /* Wider jump button */
-    height: 70px;
-    border-radius: 20px;
-    background: rgba(255, 69, 0, 0.2);
-    /* Slight orange tint */
-    border-color: rgba(255, 69, 0, 0.4);
+    left: auto;
+    right: 30px;
+    /* Right side positioning */
+    transform: none;
+    width: 100px;
+    height: 80px;
+    border-radius: 25px;
+    background: rgba(255, 69, 0, 0.3);
+    border-color: rgba(255, 69, 0, 0.6);
+}
+
+/* Slight orange tint */
+border-color: rgba(255, 69, 0, 0.4);
 }
 
 .mobile-btn:active {
