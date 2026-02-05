@@ -164,50 +164,81 @@ body {
 
 #mobile-controls {
     display: none;
+    /* Hidden on desktop */
     position: fixed;
     bottom: 20px;
+    left: 0;
     width: 100%;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-sizing: border-box;
+    height: 100px;
     z-index: 100;
+    pointer-events: none;
+    /* Let touches pass through gaps */
 }
 
 .mobile-btn {
-    background: transparent;
-    border: none;
-    color: transparent;
+    pointer-events: auto;
+    /* Enable touch on buttons */
+    position: absolute;
+    background: rgba(255, 255, 255, 0.15);
+    /* Low opacity visible */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 24px;
     font-weight: bold;
-    padding: 20px;
-    border-radius: 10px;
-    cursor: pointer;
+    border-radius: 50%;
+    /* Circular */
+    width: 70px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 10px;
+    backdrop-filter: blur(2px);
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    transition: transform 0.1s;
 }
 
-#btn-left,
+#btn-left {
+    left: 20px;
+}
+
 #btn-right {
-    width: 80px;
-    height: 80px;
+    left: 110px;
+    /* Spaced apart */
 }
 
 #btn-jump {
-    width: 100px;
-    height: 80px;
-    position: absolute;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Centered */
+    width: 120px;
+    /* Wider jump button */
+    height: 70px;
+    border-radius: 20px;
+    background: rgba(255, 69, 0, 0.2);
+    /* Slight orange tint */
+    border-color: rgba(255, 69, 0, 0.4);
 }
 
 .mobile-btn:active {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateX(-50%) scale(0.95);
+    /* Keep centering transform for jump */
 }
 
-@media (max-width: 768px) {
+#btn-left:active,
+#btn-right:active {
+    transform: scale(0.95);
+    /* Normal scale for others */
+}
+
+@media (max-width: 1024px) {
+
+    /* Show on tablets/mobile */
     #mobile-controls {
-        display: flex;
+        display: block;
     }
 
     #game-ui {
