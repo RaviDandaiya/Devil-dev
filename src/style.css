@@ -168,9 +168,9 @@ body {
 }
 
 .mobile-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    color: white;
+    background: transparent;
+    border: none;
+    color: transparent;
     font-size: 24px;
     font-weight: bold;
     padding: 20px;
@@ -195,7 +195,7 @@ body {
 }
 
 .mobile-btn:active {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.1);
     transform: scale(0.95);
 }
 
@@ -299,5 +299,106 @@ body {
 
     50% {
         opacity: 0.7;
+    }
+}
+
+/* Landscape Orientation Support */
+@media (orientation: landscape) {
+    #game-ui {
+        top: 10px;
+    }
+
+    #level-indicator {
+        font-size: 24px;
+        margin-bottom: 3px;
+    }
+
+    #stats {
+        font-size: 12px;
+        gap: 15px;
+    }
+
+    #start-overlay h1 {
+        font-size: 48px;
+        margin-bottom: 8px;
+        letter-spacing: 8px;
+    }
+
+    #start-overlay p {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    #theme-selector {
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .theme-btn {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+
+    #start-btn {
+        padding: 12px 40px;
+        font-size: 16px;
+    }
+
+    #mobile-controls {
+        bottom: 10px;
+        padding: 0 15px;
+    }
+
+    .mobile-btn {
+        padding: 15px;
+    }
+
+    #btn-left,
+    #btn-right {
+        width: 70px;
+        height: 70px;
+    }
+
+    #btn-jump {
+        width: 90px;
+        height: 70px;
+    }
+
+    #gameover-overlay h1 {
+        font-size: 56px;
+        letter-spacing: 10px;
+    }
+
+    #gameover-overlay p {
+        font-size: 18px;
+    }
+
+    #restart-btn {
+        padding: 12px 40px;
+        font-size: 16px;
+    }
+}
+
+/* Username Display Styling */
+#username-display {
+    background: linear-gradient(to right, #FF4500, #FFA500);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-shadow: none;
+    padding: 0 10px;
+}
+
+#username-display:empty {
+    display: none;
+}
+
+@media (orientation: landscape) {
+    #username-display {
+        font-size: 12px;
+        padding: 0 8px;
     }
 }
