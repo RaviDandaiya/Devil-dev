@@ -1400,35 +1400,96 @@ function gameLoop() {
 function expandLevels() {
     levels.forEach((level, index) => {
         if (index > 4) { // Start extending from Level 6
-            // "Step by Step" increase: Add repeated segments based on level index
-            // Level 6 adds ~400px, Level 30 adds ~5000px
-            const extensionCount = Math.floor((index - 4) / 2) + 1;
+            // More segments for higher levels (Level 30 = ~13 segments)
+            const segmentCount = Math.floor((index - 4) / 2) + 1;
 
             if (level.platforms.length > 0) {
                 const lastPlat = level.platforms[level.platforms.length - 1];
-                let currentX = lastPlat.x + lastPlat.width + 150; // Start after last platform
+                let currentX = lastPlat.x + lastPlat.width + 120;
 
-                for (let i = 0; i < extensionCount; i++) {
-                    // Create a bridge of platforms
-                    const width = 100 + Math.random() * 100;
-                    const y = 400 + Math.random() * 150; // Random height
+                // Define Segment Types for Variety
+                const SEGMENT_TYPES = ['BRIDGE', 'STONES', 'TOWER', 'GAP'];
 
-                    level.platforms.push(new Entity(currentX, y, width, 20, '#8B4513'));
+                for (let i = 0; i < segmentCount; i++) {
+                    // Randomize View: Verticality changes per segment
+                    const baseHeight = 400 + (Math.random() * 100 - 50);
 
-                    // Add spike occasionally
-                    if (Math.random() > 0.5) {
-                        // Add enemy or spike?
-                        // level.enemies can be undefined if empty in definition? 
-                        // My level defs have empty arrays, so push is safe.
-                        if (level.spikes) level.spikes.push(new Spikes(currentX + width / 2 - 15, y - 30, 30));
+                    // Pick random segment type (Randomized Pattern)
+                    const type = SEGMENT_TYPES[Math.floor(Math.random() * SEGMENT_TYPES.length)];
+
+                    if (type === 'BRIDGE') {
+                        // Long flat run with spikes (High Risk)
+                        const width = 300 + Math.random() * 200;
+                        level.platforms.push(new Entity(currentX, baseHeight, width, 20, '#8B0000'));
+                        // Add spike patch in middle
+                        if (Math.random() > 0.3) {
+                            if (!level.spikes) level.spikes = [];
+                            level.spikes.push(new Spikes(currentX + 100, baseHeight - 20, 60));
+                        }
+                        currentX += width + 100 + (Math.min(index * 2, 80)); // Cap gap
+                    }
+                    else if (type === 'STONES') {
+                        // Series of small blocks (Precision)
+                        const count = 3 + Math.floor(Math.random() * 3);
+                        for (let j = 0; j < count; j++) {
+                            level.platforms.push(new Entity(currentX, baseHeight + (Math.random() * 40 - 20), 70, 20, '#555'));
+                            currentX += 70 + 120; // Jumpable gap
+                        }
+                    }
+                    else if (type === 'TOWER') {
+                        // High block requires full jump
+                        level.platforms.push(new Entity(currentX, baseHeight - 60, 80, 20, '#444'));
+                        currentX += 80 + 100;
+                    }
+                    else if (type === 'GAP') {
+                        // Just a platform then big gap
+                        level.platforms.push(new Entity(currentX, baseHeight, 100, 20, '#660000'));
+                        currentX += 100 + 180 + (Math.min(index * 3, 60)); // Long gap
                     }
 
-                    currentX += width + 150 + (index * 5); // Gap increases slightly with level
+                    // Occasional Enemy on platforms
+                    if (Math.random() > 0.65) {
+                        if (!level.enemies) level.enemies = [];
+                        const plat = level.platforms[level.platforms.length - 1];
+                        if (plat.width > 100) { // Only on big platforms
+                            level.enemies.push(new Enemy(plat.x + 20, plat.y - 30));
+                        }
+                    }
                 }
+
+                // Final Landing Pad
+                level.platforms.push(new Entity(currentX, 490, 200, 40));
 
                 // Update goal to end of new extension
                 level.goal.x = currentX + 100;
                 level.goal.initialX = level.goal.x;
+                level.goal.y = 420; // Goal reachable on pad
+            }
+        }
+    });
+}
+
+for (let i = 0; i < extensionCount; i++) {
+    // Create a bridge of platforms
+    const width = 100 + Math.random() * 100;
+    const y = 400 + Math.random() * 150; // Random height
+
+    level.platforms.push(new Entity(currentX, y, width, 20, '#8B4513'));
+
+    // Add spike occasionally
+    if (Math.random() > 0.5) {
+        // Add enemy or spike?
+        // level.enemies can be undefined if empty in definition? 
+        // My level defs have empty arrays, so push is safe.
+        if (level.spikes) level.spikes.push(new Spikes(currentX + width / 2 - 15, y - 30, 30));
+    }
+
+    currentX += width + 150 + (index * 5); // Gap increases slightly with level
+}
+
+// Update goal to end of new extension
+level.goal.x = currentX + 100;
+level.goal.initialX = level.goal.x;
             }
         }
     });
