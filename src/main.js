@@ -1411,8 +1411,8 @@ function expandLevels() {
                 const SEGMENT_TYPES = ['BRIDGE', 'STONES', 'TOWER', 'GAP'];
 
                 for (let i = 0; i < segmentCount; i++) {
-                    // Randomize View: Verticality changes per segment
-                    const baseHeight = 400 + (Math.random() * 100 - 50);
+                    // Randomize View: Verticality changes per segment (Reduced Range)
+                    const baseHeight = 400 + (Math.random() * 80 - 40); // Was 100-50, too jagged
 
                     // Pick random segment type (Randomized Pattern)
                     const type = SEGMENT_TYPES[Math.floor(Math.random() * SEGMENT_TYPES.length)];
@@ -1426,25 +1426,29 @@ function expandLevels() {
                             if (!level.spikes) level.spikes = [];
                             level.spikes.push(new Spikes(currentX + 100, baseHeight - 20, 60));
                         }
-                        currentX += width + 100 + (Math.min(index * 2, 80)); // Cap gap
+                        currentX += width + 100 + (Math.min(index * 1.5, 60)); // Reduced gap from 80->60
                     }
                     else if (type === 'STONES') {
                         // Series of small blocks (Precision)
                         const count = 3 + Math.floor(Math.random() * 3);
                         for (let j = 0; j < count; j++) {
-                            level.platforms.push(new Entity(currentX, baseHeight + (Math.random() * 40 - 20), 70, 20, '#555'));
-                            currentX += 70 + 120; // Jumpable gap
+                            // Reduced vertical delta
+                            level.platforms.push(new Entity(currentX, baseHeight + (Math.random() * 30 - 15), 70, 20, '#555'));
+                            currentX += 70 + 120; // 120 Gap is safe
                         }
                     }
                     else if (type === 'TOWER') {
-                        // High block requires full jump
-                        level.platforms.push(new Entity(currentX, baseHeight - 60, 80, 20, '#444'));
+                        // High block
+                        level.platforms.push(new Entity(currentX, baseHeight - 50, 80, 20, '#444')); // -60 was too high
                         currentX += 80 + 100;
                     }
                     else if (type === 'GAP') {
-                        // Just a platform then big gap
+                        // Long gap challenge
                         level.platforms.push(new Entity(currentX, baseHeight, 100, 20, '#660000'));
-                        currentX += 100 + 180 + (Math.min(index * 3, 60)); // Long gap
+                        // MAJOR NERF: Cap gap at 150px (was 180 + index*3 -> 240+)
+                        // Max safe jump is ~220. 150 is challenging but fair.
+                        const gapSize = 130 + (Math.min(index * 2, 40));
+                        currentX += 100 + gapSize;
                     }
 
                     // Occasional Enemy on platforms
