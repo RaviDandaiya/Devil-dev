@@ -167,67 +167,65 @@ body {
 
 #mobile-controls {
     display: none;
-    /* Hidden on desktop */
     position: fixed;
-    bottom: 20px;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 100px;
+    height: 120px;
     z-index: 100;
     pointer-events: none;
-    /* Let touches pass through gaps */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 40px 40px 40px;
+}
+
+.control-group-left,
+.control-group-right {
+    display: flex;
+    gap: 20px;
+    pointer-events: none;
 }
 
 .mobile-btn {
     pointer-events: auto;
-    /* Enable touch on buttons */
-    position: absolute;
-    background: rgba(255, 255, 255, 0.15);
-    /* Low opacity visible */
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
+    /* Low opacity */
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
     font-size: 24px;
     font-weight: bold;
     border-radius: 50%;
-    /* Circular */
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
     display: flex;
     justify-content: center;
     align-items: center;
-    bottom: 10px;
     backdrop-filter: blur(2px);
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    transition: transform 0.1s;
-}
-
-#btn-left {
-    left: 20px;
-}
-
-#btn-right {
-    left: 110px;
-    /* Spaced apart */
-}
-
-#btn-jump {
-    left: auto;
-    right: 30px;
-    /* Right side positioning */
-    transform: none;
-    width: 100px;
-    height: 80px;
-    border-radius: 25px;
-    background: rgba(255, 69, 0, 0.3);
-    border-color: rgba(255, 69, 0, 0.6);
+    transition: transform 0.1s, background 0.1s, opacity 0.2s;
+    opacity: 0.4;
+    /* Set default opacity to 0.4 as requested */
 }
 
 .mobile-btn:active {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.3);
     transform: scale(0.95);
-    /* Simple scale for all buttons */
+    opacity: 0.8;
+}
+
+#btn-jump {
+    width: 110px;
+    height: 110px;
+    background: rgba(255, 69, 0, 0.15);
+    border-color: rgba(255, 69, 0, 0.3);
+}
+
+#btn-boost {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.3);
 }
 
 @media (max-width: 1024px) {
@@ -378,23 +376,20 @@ body {
     }
 
     #mobile-controls {
-        bottom: 10px;
-        padding: 0 15px;
+        bottom: 0;
+        padding: 0 40px 30px 40px;
+        height: 100px;
     }
 
     .mobile-btn {
-        padding: 15px;
-    }
-
-    #btn-left,
-    #btn-right {
-        width: 70px;
-        height: 70px;
+        width: 75px;
+        height: 75px;
+        font-size: 20px;
     }
 
     #btn-jump {
-        width: 90px;
-        height: 70px;
+        width: 100px;
+        height: 100px;
     }
 
     #gameover-overlay h1 {

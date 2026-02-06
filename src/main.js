@@ -1292,25 +1292,6 @@ const keys = {};
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
-// Mobile Touch Controls
-const btnLeft = document.getElementById('btn-left');
-const btnRight = document.getElementById('btn-right');
-const btnJump = document.getElementById('btn-jump');
-
-if (btnLeft) {
-    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
-    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; });
-}
-
-if (btnRight) {
-    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
-    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; });
-}
-
-if (btnJump) {
-    btnJump.addEventListener('touchstart', (e) => { e.preventDefault(); keys['Space'] = true; });
-    btnJump.addEventListener('touchend', (e) => { e.preventDefault(); keys['Space'] = false; });
-}
 
 const clouds = [new Cloud(100, 100), new Cloud(400, 150), new Cloud(800, 80), new Cloud(1200, 120), new Cloud(1600, 100)];
 
@@ -1326,8 +1307,9 @@ function gameLoop() {
     });
 
     player.velocityX = 0;
-    if (keys['ArrowRight']) player.velocityX = player.speed;
-    if (keys['ArrowLeft']) player.velocityX = -player.speed;
+    const currentSpeed = keys['ArrowUp'] ? player.speed * 2.0 : player.speed;
+    if (keys['ArrowRight']) player.velocityX = currentSpeed;
+    if (keys['ArrowLeft']) player.velocityX = -currentSpeed;
     if (keys['Space'] && player.onGround) player.velocityY = player.jumpForce;
 
     // Sky Falling Mechanics
@@ -1473,8 +1455,33 @@ function expandLevels() {
     });
 }
 
-
-
 // Initial Load
 expandLevels(); // Apply procedural extension
 loadLevel(0);
+
+// Mobile Touch Controls Binding
+const btnJump = document.getElementById('btn-jump');
+const btnBoost = document.getElementById('btn-boost');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+
+const bindTouch = (btn, keyCode) => {
+    if (!btn) return;
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys[keyCode] = true;
+    }, { passive: false });
+    btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys[keyCode] = false;
+    }, { passive: false });
+    btn.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        keys[keyCode] = false;
+    }, { passive: false });
+};
+
+bindTouch(btnJump, 'Space');
+bindTouch(btnBoost, 'ArrowUp');
+bindTouch(btnLeft, 'ArrowLeft');
+bindTouch(btnRight, 'ArrowRight');
