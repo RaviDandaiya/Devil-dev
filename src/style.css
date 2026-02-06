@@ -165,38 +165,52 @@ body {
     display: none !important;
 }
 
+#gameCanvas {
+    background: var(--bg-color);
+    border: 4px solid var(--ui-accent);
+    box-shadow: 0 0 80px var(--shadow-color);
+    max-width: 100%;
+    max-height: 90vh;
+    /* Default */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin: auto;
+    /* Ensure centering */
+}
+
 #mobile-controls {
     display: none;
+    /* Hidden by default */
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 100px;
-    z-index: 100;
+    height: 120px;
+    z-index: 200;
+    /* High z-index */
     pointer-events: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 0 20px 20px 20px;
+    padding: 0 30px 30px 30px;
 }
 
 .control-group-left,
 .control-group-right {
     display: flex;
-    gap: 15px;
+    gap: 20px;
     pointer-events: none;
+    align-items: flex-end;
 }
 
 .mobile-btn {
     pointer-events: auto;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 24px;
     font-weight: bold;
     border-radius: 50%;
-    width: 65px;
-    height: 65px;
+    width: 70px;
+    height: 70px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -209,23 +223,28 @@ body {
 }
 
 .mobile-btn:active {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.4);
     transform: scale(0.95);
     opacity: 0.9;
 }
 
 #btn-jump {
-    width: 90px;
-    height: 90px;
-    background: rgba(255, 69, 0, 0.15);
-    border-color: rgba(255, 69, 0, 0.3);
+    width: 140px;
+    /* Wide button like second image */
+    height: 75px;
+    border-radius: 20px;
+    /* Rounded rectangle */
+    background: rgba(255, 69, 0, 0.25);
+    border-color: rgba(255, 69, 0, 0.4);
 }
 
 @media (max-width: 1024px) {
 
     /* Show on tablets/mobile */
     #mobile-controls {
-        display: block;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
     }
 
     #game-ui {
@@ -368,21 +387,29 @@ body {
         font-size: 16px;
     }
 
+    #gameCanvas {
+        max-height: 75vh;
+        /* Further reduced for landscape chrome compatibility */
+    }
+
     #mobile-controls {
+        display: flex;
+        /* Enforce flex on mobile landscape */
         bottom: 0;
-        padding: 0 20px 15px 20px;
+        padding: 0 20px 10px 20px;
         height: 80px;
     }
 
     .mobile-btn {
-        width: 55px;
-        height: 55px;
+        width: 60px;
+        height: 60px;
         font-size: 18px;
     }
 
     #btn-jump {
-        width: 75px;
-        height: 75px;
+        width: 110px;
+        height: 65px;
+        border-radius: 15px;
     }
 
     #gameover-overlay h1 {
