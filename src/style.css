@@ -31,15 +31,21 @@
     --shadow-color: rgba(255, 0, 0, 0.4);
 }
 
+html,
 body {
     margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
+    background-color: #000;
+}
+
+body {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: #000;
 }
 
 #gameCanvas {
@@ -116,7 +122,8 @@ body {
     justify-content: center;
     align-items: center;
     color: #FFFFFF !important;
-    z-index: 100;
+    z-index: 500;
+    /* Higher than everything else */
     text-transform: uppercase;
     text-align: center;
     backdrop-filter: blur(5px);
@@ -192,6 +199,10 @@ body {
     z-index: 200;
     pointer-events: none;
     padding: 0 30px 30px 30px;
+    display: flex;
+    /* Base flex for all mobile states */
+    justify-content: space-between;
+    align-items: flex-end;
 }
 
 .control-group-left,
@@ -240,8 +251,7 @@ body {
 @media (max-width: 1024px) {
     #mobile-controls {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
+        /* Enforce display */
     }
 
     #game-ui {
@@ -319,31 +329,29 @@ body {
 
     .ad-container {
         display: none;
-        /* Hide ads in landscape to save vertical space */
     }
 
     #gameCanvas {
         max-height: 65vh;
-        /* Reduced height to ensure bottom visibility (path/player) */
     }
 
     #mobile-controls {
         display: flex;
         bottom: 0px;
-        padding: 0 40px 5px 40px;
-        /* Minimal bottom padding */
-        height: 75px;
+        /* Safe area padding + enough side room */
+        padding: 0 max(20px, env(safe-area-inset-right)) 10px max(20px, env(safe-area-inset-left));
+        height: 80px;
     }
 
     .mobile-btn {
-        width: 55px;
-        height: 55px;
-        font-size: 16px;
+        width: 60px;
+        height: 60px;
+        font-size: 18px;
     }
 
     #btn-jump {
-        width: 100px;
-        height: 60px;
+        width: 110px;
+        height: 65px;
         border-radius: 15px;
     }
 
@@ -406,7 +414,8 @@ body {
 /* Portrait Orientation Specific Fixes */
 @media (orientation: portrait) {
     #mobile-controls {
-        padding: 0 15px 15px 15px;
+        display: flex;
+        padding: 0 max(15px, env(safe-area-inset-right)) 15px max(15px, env(safe-area-inset-left));
     }
 
     .control-group-left,
@@ -415,9 +424,9 @@ body {
     }
 
     #btn-jump {
-        width: 110px;
+        width: 105px;
         height: 70px;
-        font-size: 20px;
+        font-size: 18px;
     }
 }
 
