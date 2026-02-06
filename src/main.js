@@ -1307,9 +1307,8 @@ function gameLoop() {
     });
 
     player.velocityX = 0;
-    const currentSpeed = keys['ArrowUp'] ? player.speed * 2.0 : player.speed;
-    if (keys['ArrowRight']) player.velocityX = currentSpeed;
-    if (keys['ArrowLeft']) player.velocityX = -currentSpeed;
+    if (keys['ArrowRight']) player.velocityX = player.speed;
+    if (keys['ArrowLeft']) player.velocityX = -player.speed;
     if (keys['Space'] && player.onGround) player.velocityY = player.jumpForce;
 
     // Sky Falling Mechanics
@@ -1461,7 +1460,6 @@ loadLevel(0);
 
 // Mobile Touch Controls Binding
 const btnJump = document.getElementById('btn-jump');
-const btnBoost = document.getElementById('btn-boost');
 const btnLeft = document.getElementById('btn-left');
 const btnRight = document.getElementById('btn-right');
 
@@ -1482,6 +1480,5 @@ const bindTouch = (btn, keyCode) => {
 };
 
 bindTouch(btnJump, 'Space');
-bindTouch(btnBoost, 'ArrowUp');
 bindTouch(btnLeft, 'ArrowLeft');
 bindTouch(btnRight, 'ArrowRight');
