@@ -387,66 +387,80 @@ body {
         font-size: 16px;
     }
 
-    #gameCanvas {
-        max-height: 75vh;
-        /* Further reduced for landscape chrome compatibility */
+    /* Landscape Orientation Support */
+    @media (orientation: landscape) {
+        body {
+            align-items: flex-start;
+            /* Move canvas towards top */
+            padding-top: 15px;
+        }
+
+        #gameCanvas {
+            max-height: 70vh;
+            /* Reduced to ensure bottom visibility (path) */
+        }
+
+        #mobile-controls {
+            display: flex;
+            bottom: 0px;
+            padding: 0 40px 10px 40px;
+            height: 80px;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 18px;
+        }
+
+        #btn-jump {
+            width: 110px;
+            height: 65px;
+            border-radius: 15px;
+        }
     }
 
-    #mobile-controls {
-        display: flex;
-        /* Enforce flex on mobile landscape */
-        bottom: 0;
-        padding: 0 20px 10px 20px;
-        height: 80px;
+    /* Portrait Orientation Specific Fixes */
+    @media (orientation: portrait) {
+        #mobile-controls {
+            padding: 0 15px 15px 15px;
+            /* Tighter padding to prevent overflow */
+        }
+
+        .control-group-left,
+        .control-group-right {
+            gap: 10px;
+            /* Reduced gap */
+        }
+
+        #btn-jump {
+            width: 110px;
+            /* Narrower for portrait */
+            height: 70px;
+            font-size: 20px;
+        }
     }
 
-    .mobile-btn {
-        width: 60px;
-        height: 60px;
-        font-size: 18px;
-    }
-
-    #btn-jump {
-        width: 110px;
-        height: 65px;
-        border-radius: 15px;
-    }
-
-    #gameover-overlay h1 {
-        font-size: 56px;
-        letter-spacing: 10px;
-    }
-
-    #gameover-overlay p {
-        font-size: 18px;
-    }
-
-    #restart-btn {
-        padding: 12px 40px;
-        font-size: 16px;
-    }
-}
-
-/* Username Display Styling */
-#username-display {
-    background: linear-gradient(to right, #FF4500, #FFA500);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 14px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    text-shadow: none;
-    padding: 0 10px;
-}
-
-#username-display:empty {
-    display: none;
-}
-
-@media (orientation: landscape) {
+    /* Username Display Styling */
     #username-display {
-        font-size: 12px;
-        padding: 0 8px;
+        background: linear-gradient(to right, #FF4500, #FFA500);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        text-shadow: none;
+        padding: 0 10px;
     }
-}
+
+    #username-display:empty {
+        display: none;
+    }
+
+    @media (orientation: landscape) {
+        #username-display {
+            font-size: 12px;
+            padding: 0 8px;
+        }
+    }
