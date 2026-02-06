@@ -1,4 +1,4 @@
-import './style.css';
+// CSS imported via link tag in index.html
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
